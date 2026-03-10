@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EYQ — Results Gallery</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="motif-theme-dark">
+
+<header class="top-bar">
+  <div class="top-bar-left"><a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a><div class="divider-v"></div><div class="ws-switcher ws-private" onclick="toggleWorkspaceDropdown(event)"><div class="ws-switcher-icon">P</div><div><div class="ws-switcher-label">My Private</div><div class="ws-switcher-meta">Free tier</div></div><span class="ws-switcher-arrow"><i class="fas fa-chevron-down"></i></span></div><div class="ws-dropdown hidden"></div></div>
+  <div class="top-bar-right"><div class="role-chip-bar"><span>Consultant, Consulting</span></div><button class="notif-btn" id="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-sun"></i></button><a href="approvals.html" class="notif-btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></a><div class="avatar">AM</div></div>
+</header>
+<nav class="left-nav" role="navigation"></nav>
+
+<main class="app-content">
+  <div id="banner-area"></div>
+  <div class="page-container">
+    <nav style="font-size:0.786rem;color:var(--ey-gray-500);margin-bottom:16px"><a href="index.html">Home</a> <i class="fas fa-chevron-right" style="font-size:0.6rem;margin:0 6px"></i> Results Gallery</nav>
+
+    <!-- Inline search refinement -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div class="search-input-wrap" style="flex:1;max-width:600px">
+        <i class="fas fa-search" style="color:var(--ey-gray-500)"></i>
+        <input class="search-input" id="gallery-search" placeholder="Refine results..." oninput="filterGallery()">
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" onclick="alert('Preset saved!')"><i class="fas fa-bookmark"></i> Save preset</button>
+        <a href="index.html" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to Home</a>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <h2>All AI Assets</h2>
+        <p class="text-sm text-muted" id="results-count"></p>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="active-chips"></div>
+    </div>
+
+    <div class="results-layout">
+      <div class="results-filters">
+        <div class="filter-group">
+          <div class="filter-group-title">Type</div>
+          <label class="filter-option"><input type="checkbox" checked onchange="filterGallery()"> Agent</label>
+          <label class="filter-option"><input type="checkbox" checked onchange="filterGallery()"> Roleplay</label>
+          <label class="filter-option"><input type="checkbox" checked onchange="filterGallery()"> Dataset</label>
+          <label class="filter-option"><input type="checkbox" checked onchange="filterGallery()"> MCP</label>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group-title">Risk Tier</div>
+          <label class="filter-option"><input type="checkbox" checked> Low</label>
+          <label class="filter-option"><input type="checkbox" checked> Medium</label>
+          <label class="filter-option"><input type="checkbox" checked> High</label>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group-title">Pricing</div>
+          <label class="filter-option"><input type="checkbox" checked> Free</label>
+          <label class="filter-option"><input type="checkbox" checked> Estimated cost</label>
+          <label class="filter-option"><input type="checkbox" checked> Cost TBD</label>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group-title">Other</div>
+          <label class="filter-option"><input type="checkbox"> Free only</label>
+          <label class="filter-option"><input type="checkbox"> New</label>
+          <label class="filter-option"><input type="checkbox"> Trending</label>
+          <label class="filter-option"><input type="checkbox"> Favorites only</label>
+        </div>
+        <div style="margin-top:16px">
+          <div class="filter-group-title">Your Presets</div>
+          <div style="padding:8px;background:var(--chip-bg);border-radius:var(--radius-md);font-size:var(--font-size-10);color:var(--ey-gray-500)">No saved presets yet.</div>
+        </div>
+      </div>
+      <div class="results-grid" id="results-grid"></div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="ws-create-modal"><div class="modal"><div class="modal-header"><h2>Create Team Workspace</h2><button class="modal-close" onclick="closeModal('ws-create-modal')">&times;</button></div><div class="stepper"><div class="step active"><span class="step-num">1</span> Basics</div><div class="step-connector"></div><div class="step"><span class="step-num">2</span> Engagement Code</div><div class="step-connector"></div><div class="step"><span class="step-num">3</span> Members & Assets</div><div class="step-connector"></div><div class="step"><span class="step-num">4</span> Budgets & Policies</div></div><div class="modal-body" id="ws-create-body"></div><div class="modal-footer" id="ws-create-footer"></div></div></div>
+<div class="run-panel-overlay" id="run-panel" onclick="if(event.target===this)closeModal('run-panel')"><div class="run-panel"><div class="run-panel-header"><h3>Run Asset</h3><button class="modal-close" onclick="closeModal('run-panel')">&times;</button></div><div class="run-panel-body" id="run-panel-body"></div><div class="run-panel-footer" id="run-panel-footer"></div></div></div>
+<div class="state-switcher"><div class="state-switcher-header" onclick="toggleStateSwitcher()"><span><i class="fas fa-sliders-h"></i> Prototype States</span><i class="fas fa-chevron-up"></i></div><div class="state-switcher-body"></div></div>
+
+<script src="app.js"></script>
+<script>
+function renderGallery() {
+  const grid = $('#results-grid');
+  const count = $('#results-count');
+  if (!grid) return;
+
+  const results = getAllAssets();
+  grid.innerHTML = results.map(a => renderAssetCard(a, true)).join('');
+  if (count) count.textContent = `${results.length} assets found`;
+}
+
+function filterGallery() {
+  renderGallery();
+}
+
+function updatePageUI() {
+  renderGallery();
+}
+</script>
+</body>
+</html>

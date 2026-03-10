@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EYQ — Asset Detail</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="motif-theme-dark">
+
+<header class="top-bar">
+  <div class="top-bar-left"><a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a><div class="divider-v"></div><div class="ws-switcher ws-private" onclick="toggleWorkspaceDropdown(event)"><div class="ws-switcher-icon">P</div><div><div class="ws-switcher-label">My Private</div><div class="ws-switcher-meta">Free tier</div></div><span class="ws-switcher-arrow"><i class="fas fa-chevron-down"></i></span></div><div class="ws-dropdown hidden"></div></div>
+  <div class="top-bar-right"><div class="role-chip-bar"><span>Consultant, Consulting</span></div><button class="notif-btn" id="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-sun"></i></button><a href="approvals.html" class="notif-btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></a><div class="avatar">AM</div></div>
+</header>
+<nav class="left-nav" role="navigation"></nav>
+
+<main class="app-content">
+  <div id="banner-area"></div>
+  <div class="page-container">
+    <nav style="font-size:0.786rem;color:var(--ey-gray-500);margin-bottom:16px">
+      <a href="index.html">Home</a> <i class="fas fa-chevron-right" style="font-size:0.6rem;margin:0 6px"></i>
+      <a href="finder.html">Finder</a> <i class="fas fa-chevron-right" style="font-size:0.6rem;margin:0 6px"></i>
+      <span id="breadcrumb-name">Asset</span>
+    </nav>
+
+    <!-- Hero -->
+    <div class="card" style="padding:24px;margin-bottom:24px">
+      <div style="display:flex;align-items:start;justify-content:space-between;gap:24px;flex-wrap:wrap">
+        <div style="flex:1;min-width:300px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div class="asset-type-icon" id="hero-icon" style="width:48px;height:48px;font-size:1.2rem"></div>
+            <div><h1 style="font-size:1.5rem" id="hero-name"></h1><div id="hero-meta" style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap"></div></div>
+          </div>
+          <p id="hero-desc" style="margin-bottom:12px"></p>
+          <div id="hero-rating" style="display:flex;align-items:center;gap:12px"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:200px">
+          <button class="btn btn-primary btn-lg w-full" style="justify-content:center" id="hero-run-btn"><i class="fas fa-play"></i> Run</button>
+          <button class="btn btn-secondary w-full" style="justify-content:center" id="hero-add-btn"><i class="fas fa-plus"></i> Add to Workspace</button>
+          <button class="btn btn-ghost w-full hidden" style="justify-content:center" id="hero-access-btn"><i class="fas fa-key"></i> Request Access</button>
+          <div id="hero-fav-btn" style="text-align:center;margin-top:4px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs" style="margin-bottom:24px">
+      <button class="tab active" onclick="switchTab(this,'overview')">Overview</button>
+      <button class="tab" onclick="switchTab(this,'io')">Inputs / Outputs</button>
+      <button class="tab" onclick="switchTab(this,'governance')">Governance & Risk</button>
+      <button class="tab disabled-tab" title="Per-asset pricing coming soon">Pricing</button>
+      <button class="tab" onclick="switchTab(this,'changelog')">Changelog</button>
+    </div>
+
+    <div class="tab-content active" id="tab-overview"><div id="overview-content"></div></div>
+    <div class="tab-content" id="tab-io"><div id="io-content"></div></div>
+    <div class="tab-content" id="tab-governance"><div id="gov-content"></div></div>
+    <div class="tab-content" id="tab-changelog"><div id="changelog-content"></div></div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="ws-create-modal"><div class="modal"><div class="modal-header"><h2>Create Team Workspace</h2><button class="modal-close" onclick="closeModal('ws-create-modal')">&times;</button></div><div class="stepper"><div class="step active"><span class="step-num">1</span> Basics</div><div class="step-connector"></div><div class="step"><span class="step-num">2</span> Engagement Code</div><div class="step-connector"></div><div class="step"><span class="step-num">3</span> Members & Assets</div><div class="step-connector"></div><div class="step"><span class="step-num">4</span> Budgets & Policies</div></div><div class="modal-body" id="ws-create-body"></div><div class="modal-footer" id="ws-create-footer"></div></div></div>
+<div class="run-panel-overlay" id="run-panel" onclick="if(event.target===this)closeModal('run-panel')"><div class="run-panel"><div class="run-panel-header"><h3>Run Asset</h3><button class="modal-close" onclick="closeModal('run-panel')">&times;</button></div><div class="run-panel-body" id="run-panel-body"></div><div class="run-panel-footer" id="run-panel-footer"></div></div></div>
+<div class="state-switcher"><div class="state-switcher-header" onclick="toggleStateSwitcher()"><span><i class="fas fa-sliders-h"></i> Prototype States</span><i class="fas fa-chevron-up"></i></div><div class="state-switcher-body"></div></div>
+
+<script src="app.js"></script>
+<script>
+const DETAIL = {
+  'rfp-draft': { about: 'Generates proposal drafts using EY RFP templates (v7) and credentials repository. Incorporates service line expertise and client-specific requirements.', inputs: ['Client brief or RFP document (PDF/DOCX)', 'Service line context', 'Credentials filter', 'Tone preferences'], outputs: ['Draft proposal (DOCX)', 'Executive summary', 'Credentials appendix'], datasets: ['EY Credentials Repository (Required)'], exports: ['EY SharePoint (Approved)', 'Email to EY (Approved)', 'External (Blocked)'], riskDetails: 'Low risk. Internal templates, masked credentials. No PII.', dataReqs: 'Requires EY Credentials Repository with RLS by engagement.', compliance: 'Compliant with document retention. Watermarked as draft.', changelog: [{v:'v2.3',d:'Mar 1, 2026',t:'Multi-language support for EU'},{v:'v2.2',d:'Feb 15, 2026',t:'Improved credentials matching'},{v:'v2.0',d:'Jan 10, 2026',t:'RFP v7 template support'}] },
+  'controls-packager': { about: 'Automates assembly of walkthrough notes and artifacts into evidence packs per Controls Walkthrough v3.', inputs: ['Walkthrough notes', 'Control descriptions', 'Supporting artifacts'], outputs: ['Evidence pack (PDF)', 'Completeness score', 'Gap analysis'], datasets: ['Policy & Methodology Library'], exports: ['SharePoint (Approved)', 'Engagement archive (Approved)'], riskDetails: 'Medium risk. Engagement-specific control documentation.', dataReqs: 'Requires Policy & Methodology Library access.', compliance: 'Compliant with audit evidence standards.', changelog: [{v:'v1.4',d:'Feb 20, 2026',t:'APAC regulatory templates'},{v:'v1.3',d:'Feb 5, 2026',t:'Improved scoring'}] },
+  'policy-qa': { about: 'Instant answers to EY internal policy questions, grounded in the official Policy & Methodology Library.', inputs: ['Policy question (natural language)', 'Optional area filter'], outputs: ['Answer with citations', 'Policy excerpts', 'Related policies'], datasets: ['Policy Library (Built-in)'], exports: ['Copy to clipboard', 'SharePoint'], riskDetails: 'Low risk. Read-only policies. No sensitive data.', dataReqs: 'No additional access required.', compliance: 'Grounded in official docs. Not legal advice.', changelog: [{v:'v3.1',d:'Mar 5, 2026',t:'Q1 2026 policy updates'},{v:'v3.0',d:'Feb 1, 2026',t:'Improved retrieval model'}] },
+  'client-pitch': { about: 'Practice stakeholder meetings with AI-simulated skeptical clients. Scoring per EY pitch rubric.', inputs: ['Pitch topic', 'Client profile', 'Difficulty level'], outputs: ['Real-time roleplay', 'Scorecard', 'Improvement suggestions'], datasets: [], exports: ['Scorecard to SharePoint'], riskDetails: 'Low risk. Synthetic scenarios only.', dataReqs: 'None required.', compliance: 'Scenarios updated quarterly.', changelog: [{v:'v2.0',d:'Feb 28, 2026',t:'Industry-specific scenarios'},{v:'v1.5',d:'Jan 20, 2026',t:'Improved rubric'}] },
+  'controls-walkthrough': { about: 'Simulate control owner interviews with methodology-aligned scoring.', inputs: ['Control area', 'Interview style', 'Difficulty'], outputs: ['Interview simulation', 'Completeness score', 'Assessment'], datasets: ['Policy Library (Optional)'], exports: ['Report to SharePoint'], riskDetails: 'Medium risk. Methodology-specific scoring.', dataReqs: 'Optional Policy Library access.', compliance: 'Aligned to Controls Walkthrough v3.', changelog: [{v:'v1.2',d:'Mar 3, 2026',t:'IT general controls scenarios'}] },
+  'credentials-repo': { about: 'Service line/sector credentials with masked identifiers and RLS by engagement.', inputs: ['Service line filter', 'Sector filter', 'Date range'], outputs: ['Credentials list', 'Formatted appendix'], datasets: [], exports: ['SharePoint (with RLS)'], riskDetails: 'Medium risk. Engagement-level data with masked IDs.', dataReqs: 'Approved Team Workspace + engagement code required.', compliance: 'Data retention policies. Annual review.', changelog: [{v:'2026-Q1',d:'Mar 1, 2026',t:'Q1 credentials refresh'}] },
+  'policy-library': { about: 'Official EY policies and methods with sensitivity labels and legal hold.', inputs: ['Search query', 'Area filter'], outputs: ['Policy documents', 'Method guides'], datasets: [], exports: ['Read-only', 'Citations to SharePoint'], riskDetails: 'Low risk. Published official content.', dataReqs: 'Available without workspace for read-only.', compliance: 'Official source of truth. Version-controlled.', changelog: [{v:'2026.3',d:'Mar 1, 2026',t:'Monthly update'}] },
+  'sharepoint': { about: 'EY-approved connector for SharePoint document retrieval/export within EY tenant.', inputs: ['SharePoint site URL', 'Document library', 'Filters'], outputs: ['Document content', 'File metadata'], datasets: [], exports: ['EY tenant only'], riskDetails: 'Low risk. Scoped to EY tenant. Audit logged.', dataReqs: 'No additional requirements.', compliance: 'Approved by IT Security.', changelog: [{v:'v3.0',d:'Feb 25, 2026',t:'SharePoint lists support'}] },
+  'outlook': { about: 'EY-approved connector for Outlook email summarization within EY tenant.', inputs: ['Email thread', 'Scope', 'Preferences'], outputs: ['Summary', 'Action items', 'Follow-up draft'], datasets: [], exports: ['Within Outlook'], riskDetails: 'Low risk. User permissions only. Not persisted.', dataReqs: 'Uses existing Outlook permissions.', compliance: 'Approved by IT Security.', changelog: [{v:'v2.1',d:'Mar 2, 2026',t:'Meeting invite summarization'}] },
+  'client-intake': { about: 'Automates new client onboarding questionnaires and initial risk assessment.', inputs: ['Client information', 'Industry', 'Engagement type'], outputs: ['Onboarding questionnaire', 'Risk assessment', 'Next steps'], datasets: [], exports: ['SharePoint'], riskDetails: 'Low risk. Template-based. No client PII stored.', dataReqs: 'None.', compliance: 'Aligned to client acceptance policies.', changelog: [{v:'v1.0',d:'Mar 7, 2026',t:'Initial release'}] },
+  'teams-connector': { about: 'Meeting summaries and action items extraction from Microsoft Teams.', inputs: ['Meeting selection', 'Summary preferences'], outputs: ['Meeting summary', 'Action items'], datasets: [], exports: ['Teams/SharePoint'], riskDetails: 'Low risk. EY tenant scoped.', dataReqs: 'None.', compliance: 'Under review.', changelog: [{v:'v0.9',d:'Mar 5, 2026',t:'Beta release'}] }
+};
+
+let currentAsset = null;
+
+function switchTab(btn, id) {
+  if (btn.classList.contains('disabled-tab')) return;
+  $$('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  $$('.tab-content').forEach(t => t.classList.remove('active'));
+  $(`#tab-${id}`)?.classList.add('active');
+}
+
+function updatePageUI() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  currentAsset = getAllAssets().find(a => a.id === id);
+  if (!currentAsset) { $('.page-container').innerHTML = '<div style="text-align:center;padding:60px"><h2>Asset not found</h2><p><a href="finder.html">Return to Finder</a></p></div>'; return; }
+
+  const a = currentAsset;
+  const d = DETAIL[a.id] || {};
+  const isPaid = a.pricing !== 'free';
+  document.title = `EYQ — ${a.name}`;
+  $('#breadcrumb-name').textContent = a.name;
+
+  const icon = $('#hero-icon');
+  icon.className = `asset-type-icon ${typeClass(a.type)}`;
+  icon.style.cssText = 'width:48px;height:48px;font-size:1.2rem';
+  icon.innerHTML = `<i class="fas ${typeIcon(a.type)}"></i>`;
+  $('#hero-name').textContent = a.name;
+  $('#hero-desc').textContent = a.desc;
+  $('#hero-meta').innerHTML = `<span class="badge" style="background:var(--chip-bg);color:var(--ey-gray-600)">${a.type}</span>${riskBadge(a.risk)}${pricingBadge(a.pricing, a.cost)}${a.template ? `<span class="chip chip-default">${a.template}</span>` : ''}${requiresChip(a)}${govFitBadge(a.govFit)}`;
+  $('#hero-rating').innerHTML = `${starRating(a.rating)} <span class="text-sm text-muted">(${a.reviews} reviews)</span>${a.teamUsed ? ' <span class="text-sm text-muted"><i class="fas fa-users"></i> Used by team</span>' : ''}`;
+
+  const favIcon = isFavorite(a.id) ? 'fas fa-star' : 'far fa-star';
+  $('#hero-fav-btn').innerHTML = `<button class="btn btn-ghost btn-sm" onclick="toggleFavorite('${a.id}')"><i class="${favIcon}" style="color:var(--text-primary)"></i> ${isFavorite(a.id)?'Unfavorite':'Favorite'}</button>`;
+
+  const runBtn = $('#hero-run-btn');
+  runBtn.onclick = () => handleRun(a.id);
+  if (isPaid && !canRunPaidAsset()) { runBtn.classList.add('disabled'); if (!isInTeamWorkspace()) runBtn.onclick = () => openWorkspaceModal(); }
+  else runBtn.classList.remove('disabled');
+  $('#hero-add-btn').onclick = () => handleAddToWorkspace(a.id);
+  if (a.requiresDataset && !STATE.datasetApproved) show($('#hero-access-btn'));
+  else hide($('#hero-access-btn'));
+  $('#hero-access-btn').onclick = () => alert('Access request submitted. Low-risk datasets may be auto-approved (Fast-Lane).');
+
+  // Overview
+  const detailGrid = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div><label style="display:block;font-size:0.714rem;font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;margin-bottom:4px">Type</label><span style="font-size:0.857rem">${a.type}</span></div>
+    <div><label style="display:block;font-size:0.714rem;font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;margin-bottom:4px">Risk</label><span style="font-size:0.857rem">${a.risk}</span></div>
+    <div><label style="display:block;font-size:0.714rem;font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;margin-bottom:4px">Pricing</label><span style="font-size:0.857rem">${a.cost}</span></div>
+    <div><label style="display:block;font-size:0.714rem;font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;margin-bottom:4px">Template</label><span style="font-size:0.857rem">${a.template || 'N/A'}</span></div>
+    <div><label style="display:block;font-size:0.714rem;font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;margin-bottom:4px">Requires Workspace</label><span style="font-size:0.857rem">${a.requiresWorkspace?'Yes':'No'}</span></div>
+    <div><label style="display:block;font-size:0.714rem;font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;margin-bottom:4px">Rating</label><span style="font-size:0.857rem">${a.rating}/5 (${a.reviews} reviews)</span></div>
+  </div>`;
+  const datasets = (d.datasets||[]).length ? `<div class="card" style="padding:16px;margin-top:16px"><h3 style="margin-bottom:8px">Required Datasets</h3>${d.datasets.map(ds => `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--chip-bg);border-radius:var(--radius-md);margin-bottom:4px"><div class="asset-type-icon dataset" style="width:24px;height:24px;font-size:10px"><i class="fas fa-database"></i></div><span style="font-size:0.857rem">${ds}</span></div>`).join('')}</div>` : '';
+  const related = getAllAssets().filter(r => r.id !== a.id).slice(0, 3);
+  $('#overview-content').innerHTML = `<div class="card" style="padding:16px;margin-bottom:16px"><h3 style="margin-bottom:8px">About</h3><p style="font-size:0.857rem">${d.about || a.desc}</p></div><div class="card" style="padding:16px">${detailGrid}</div>${datasets}<div class="card" style="padding:16px;margin-top:16px"><h3 style="margin-bottom:8px">Related Assets</h3><div class="card-row">${related.map(r => renderAssetCard(r, false)).join('')}</div></div>`;
+
+  // I/O
+  const inputsList = (d.inputs||[]).map(i => `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--card-border);font-size:0.857rem"><i class="fas fa-arrow-right" style="color:var(--ey-gray-400);font-size:10px"></i> ${i}</div>`).join('');
+  const outputsList = (d.outputs||[]).map(o => `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--card-border);font-size:0.857rem"><i class="fas fa-arrow-left" style="color:var(--ey-green);font-size:10px"></i> ${o}</div>`).join('');
+  const exportsList = (d.exports||[]).map(e => { const blocked = e.includes('Blocked'); return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--card-border);font-size:0.857rem"><i class="fas ${blocked?'fa-lock':'fa-check-circle'}" style="color:${blocked?'var(--ey-red)':'var(--ey-green)'};font-size:10px"></i> ${e}</div>`; }).join('');
+  $('#io-content').innerHTML = `<div class="card" style="padding:16px;margin-bottom:16px"><h3 style="margin-bottom:8px">Inputs</h3>${inputsList}</div><div class="card" style="padding:16px;margin-bottom:16px"><h3 style="margin-bottom:8px">Outputs</h3>${outputsList}</div><div class="card" style="padding:16px"><h3 style="margin-bottom:8px">Export Limitations</h3>${exportsList}</div>`;
+
+  // Governance
+  $('#gov-content').innerHTML = `<div class="card" style="padding:16px;margin-bottom:16px"><h3 style="margin-bottom:8px">Risk Assessment</h3><p style="font-size:0.857rem">${d.riskDetails||''}</p></div><div class="card" style="padding:16px;margin-bottom:16px"><h3 style="margin-bottom:8px">Data Requirements</h3><p style="font-size:0.857rem">${d.dataReqs||''}</p></div><div class="card" style="padding:16px"><h3 style="margin-bottom:8px">Compliance</h3><p style="font-size:0.857rem">${d.compliance||''}</p></div>`;
+
+  // Changelog
+  $('#changelog-content').innerHTML = `<div class="card" style="padding:16px"><h3 style="margin-bottom:8px">Version History</h3>${(d.changelog||[]).map(c => `<div style="padding:10px 0;border-bottom:1px solid var(--card-border)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="chip chip-default">${c.v}</span><span class="text-xs text-muted">${c.d}</span></div><p style="font-size:0.857rem">${c.t}</p></div>`).join('')}</div>`;
+}
+</script>
+</body>
+</html>

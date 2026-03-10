@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EYQ — Agent Studio</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="motif-theme-dark">
+
+<header class="top-bar">
+  <div class="top-bar-left"><a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a><div class="divider-v"></div><div class="ws-switcher ws-private" onclick="toggleWorkspaceDropdown(event)"><div class="ws-switcher-icon">P</div><div><div class="ws-switcher-label">My Private</div><div class="ws-switcher-meta">Free tier</div></div><span class="ws-switcher-arrow"><i class="fas fa-chevron-down"></i></span></div><div class="ws-dropdown hidden"></div></div>
+  <div class="top-bar-right"><div class="role-chip-bar"><span>Consultant, Consulting</span></div><button class="notif-btn" id="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-sun"></i></button><a href="approvals.html" class="notif-btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></a><div class="avatar">AM</div></div>
+</header>
+<nav class="left-nav" role="navigation"></nav>
+
+<main class="app-content">
+  <div id="banner-area"></div>
+  <div class="page-container">
+    <nav style="font-size:0.786rem;color:var(--ey-gray-500);margin-bottom:16px"><a href="index.html">Home</a> <i class="fas fa-chevron-right" style="font-size:0.6rem;margin:0 6px"></i> Agent Studio</nav>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div><h1 style="font-size:1.5rem">Agent Studio</h1><p class="text-muted">Build, test, and publish AI agents with EY-approved blueprints.</p></div>
+      <button class="btn btn-primary" onclick="alert('Creating new agent...')"><i class="fas fa-plus"></i> New Agent</button>
+    </div>
+
+    <div class="tabs" style="margin-bottom:24px">
+      <button class="tab active" onclick="switchStudioTab(this,'blueprints')">Blueprints</button>
+      <button class="tab" onclick="switchStudioTab(this,'agents')">My Agents</button>
+      <button class="tab" onclick="switchStudioTab(this,'recipes')">Task Recipes</button>
+      <button class="tab" onclick="switchStudioTab(this,'publish')">Publish</button>
+    </div>
+
+    <!-- Blueprints -->
+    <div class="tab-content active" id="tab-blueprints">
+      <div class="section-sub">Start from a blueprint</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:24px">
+        <div class="blueprint-card" style="text-align:left;padding:20px" onclick="alert('Opening RAG Agent builder...')">
+          <i class="fas fa-brain" style="margin-bottom:8px;font-size:1.5rem"></i>
+          <p style="font-weight:600;margin-bottom:4px">RAG Agent</p>
+          <span class="text-xs text-muted">Connect data sources and build retrieval-augmented agents. Great for Q&A, document search, and knowledge management.</span>
+        </div>
+        <div class="blueprint-card" style="text-align:left;padding:20px" onclick="alert('Opening Approval Flow builder...')">
+          <i class="fas fa-check-double" style="margin-bottom:8px;font-size:1.5rem"></i>
+          <p style="font-weight:600;margin-bottom:4px">Approval Flow</p>
+          <span class="text-xs text-muted">Build agents with human-in-the-loop approval steps for sensitive operations.</span>
+        </div>
+        <div class="blueprint-card" style="text-align:left;padding:20px" onclick="alert('Opening Multi-Agent builder...')">
+          <i class="fas fa-project-diagram" style="margin-bottom:8px;font-size:1.5rem"></i>
+          <p style="font-weight:600;margin-bottom:4px">Multi-Agent Pipeline</p>
+          <span class="text-xs text-muted">Orchestrate multiple agents in a sequential or parallel workflow.</span>
+        </div>
+        <div class="blueprint-card" style="text-align:left;padding:20px" onclick="alert('Opening HITL Agent builder...')">
+          <i class="fas fa-user-check" style="margin-bottom:8px;font-size:1.5rem"></i>
+          <p style="font-weight:600;margin-bottom:4px">HITL Agent</p>
+          <span class="text-xs text-muted">Agents with human review checkpoints for quality assurance.</span>
+        </div>
+      </div>
+      <div id="studio-upsell" class="hidden" style="padding:14px;background:var(--badge-info-bg);border-radius:var(--radius-md);display:flex;align-items:center;gap:10px;font-size:0.857rem;color:var(--ey-blue)">
+        <i class="fas fa-info-circle"></i><div style="flex:1"><strong>Some blueprints require paid connectors.</strong> Move to a Team Workspace for full access.</div>
+        <button class="btn btn-sm btn-secondary" onclick="openWorkspaceModal()">Create Workspace</button>
+      </div>
+    </div>
+
+    <!-- My Agents -->
+    <div class="tab-content" id="tab-agents">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" style="padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="asset-type-icon agent" style="width:40px;height:40px;font-size:1rem"><i class="fas fa-robot"></i></div>
+              <div><div style="font-weight:600">Client Intake Agent</div><div class="text-xs text-muted">Draft &bull; Last edited 2 days ago &bull; RAG blueprint</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="chip chip-orange">Draft</span>
+              <button class="btn btn-sm btn-primary" onclick="alert('Resuming build...')">Resume Build</button>
+              <button class="btn btn-sm btn-ghost"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="asset-type-icon agent" style="width:40px;height:40px;font-size:1rem"><i class="fas fa-robot"></i></div>
+              <div><div style="font-weight:600">Compliance Checker v2</div><div class="text-xs text-muted">Testing &bull; Last edited 5 days ago &bull; Approval Flow blueprint</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="chip chip-blue">Testing</span>
+              <button class="btn btn-sm btn-primary" onclick="alert('Resuming build...')">Resume Build</button>
+              <button class="btn btn-sm btn-ghost"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="asset-type-icon agent" style="width:40px;height:40px;font-size:1rem"><i class="fas fa-robot"></i></div>
+              <div><div style="font-weight:600">RFP Draft Agent (Fork)</div><div class="text-xs text-muted">Published &bull; Mar 1, 2026 &bull; RAG blueprint</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="chip chip-green">Published</span>
+              <button class="btn btn-sm btn-secondary">View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task Recipes -->
+    <div class="tab-content" id="tab-recipes">
+      <p class="text-muted" style="margin-bottom:16px">Saved recipes from previous runs. Share to workspace or rerun with new inputs.</p>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" style="padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="asset-type-icon agent" style="width:36px;height:36px"><i class="fas fa-robot"></i></div>
+              <div><div style="font-weight:600;font-size:0.857rem">Retail RFP Draft - Q2 Template</div><div class="text-xs text-muted">From RFP Draft Agent &bull; Saved 3 days ago &bull; ACME Retail RFP Team</div></div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-primary" onclick="handleRun('rfp-draft')"><i class="fas fa-play"></i> Rerun</button>
+              <button class="btn btn-sm btn-secondary"><i class="fas fa-share"></i> Share</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="asset-type-icon agent" style="width:36px;height:36px"><i class="fas fa-robot"></i></div>
+              <div><div style="font-weight:600;font-size:0.857rem">Policy Compliance Check - EU Regulations</div><div class="text-xs text-muted">From Policy Q&A Agent &bull; Saved 1 week ago &bull; My Private</div></div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-primary" onclick="handleRun('policy-qa')"><i class="fas fa-play"></i> Rerun</button>
+              <button class="btn btn-sm btn-secondary"><i class="fas fa-share"></i> Share</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Publish -->
+    <div class="tab-content" id="tab-publish">
+      <h3 style="margin-bottom:16px">Publication Readiness</h3>
+      <div class="card" style="padding:20px;margin-bottom:16px">
+        <div style="display:flex;align-items:start;gap:20px">
+          <div style="flex:1">
+            <h3 style="margin-bottom:4px">Client Intake Agent v1.0</h3>
+            <p class="text-sm text-muted" style="margin-bottom:16px">Ready for marketplace publication review.</p>
+            <div class="readiness-score" style="border:none;padding:0">
+              <div class="readiness-ring" style="background:conic-gradient(var(--ey-green) 0% 72%, var(--card-border) 72% 100%)"><span style="background:var(--card-bg);width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center">72%</span></div>
+              <div class="readiness-items">
+                <div class="readiness-item"><i class="fas fa-check-circle"></i> Security scan passed</div>
+                <div class="readiness-item"><i class="fas fa-check-circle"></i> Metadata complete (name, description, tags, type)</div>
+                <div class="readiness-item"><i class="fas fa-exclamation-circle"></i> Evaluation coverage: 68% (target 80%)</div>
+                <div class="readiness-item"><i class="fas fa-times-circle"></i> Missing: output schema documentation</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-primary" disabled><i class="fas fa-globe"></i> Submit for Review</button>
+            <p class="text-xs text-muted">Fix remaining items to enable submission.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px">
+        <h3 style="margin-bottom:12px">Readiness Checklist</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--badge-success-bg);border-radius:var(--radius-md)"><i class="fas fa-check-circle" style="color:var(--ey-green)"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-green)">Security Scan</div><p class="text-xs">Passed. No vulnerabilities detected. Last scan: Mar 7, 2026.</p></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--badge-success-bg);border-radius:var(--radius-md)"><i class="fas fa-check-circle" style="color:var(--ey-green)"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-green)">Metadata Completeness</div><p class="text-xs">All required fields populated: name, description, type, risk tier, tags.</p></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--badge-warning-bg);border-radius:var(--radius-md)"><i class="fas fa-exclamation-circle" style="color:var(--ey-orange)"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-orange)">Evaluation Coverage</div><p class="text-xs">68% of test cases passing. Target: 80%. Add 4 more test cases for edge scenarios.</p></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--badge-error-bg);border-radius:var(--radius-md)"><i class="fas fa-times-circle" style="color:var(--ey-red)"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-red)">Output Schema</div><p class="text-xs">Output schema documentation is required for marketplace listing. <a href="#">Add schema</a></p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="ws-create-modal"><div class="modal"><div class="modal-header"><h2>Create Team Workspace</h2><button class="modal-close" onclick="closeModal('ws-create-modal')">&times;</button></div><div class="stepper"><div class="step active"><span class="step-num">1</span> Basics</div><div class="step-connector"></div><div class="step"><span class="step-num">2</span> Engagement Code</div><div class="step-connector"></div><div class="step"><span class="step-num">3</span> Members & Assets</div><div class="step-connector"></div><div class="step"><span class="step-num">4</span> Budgets & Policies</div></div><div class="modal-body" id="ws-create-body"></div><div class="modal-footer" id="ws-create-footer"></div></div></div>
+<div class="run-panel-overlay" id="run-panel" onclick="if(event.target===this)closeModal('run-panel')"><div class="run-panel"><div class="run-panel-header"><h3>Run Asset</h3><button class="modal-close" onclick="closeModal('run-panel')">&times;</button></div><div class="run-panel-body" id="run-panel-body"></div><div class="run-panel-footer" id="run-panel-footer"></div></div></div>
+<div class="state-switcher"><div class="state-switcher-header" onclick="toggleStateSwitcher()"><span><i class="fas fa-sliders-h"></i> Prototype States</span><i class="fas fa-chevron-up"></i></div><div class="state-switcher-body"></div></div>
+
+<script src="app.js"></script>
+<script>
+function switchStudioTab(btn, id) {
+  $$('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  $$('.tab-content').forEach(t => t.classList.remove('active'));
+  $(`#tab-${id}`)?.classList.add('active');
+}
+function updatePageUI() {
+  if (!isInTeamWorkspace()) show($('#studio-upsell'));
+  else hide($('#studio-upsell'));
+}
+</script>
+</body>
+</html>

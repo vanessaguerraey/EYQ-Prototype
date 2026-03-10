@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EYQ — Workspaces, Agent Studio & AI Assets Marketplace</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="motif-theme-dark">
+
+<!-- Header -->
+<header class="top-bar">
+  <div class="top-bar-left">
+    <button class="notif-btn" style="display:none" id="hamburger-btn" onclick="document.querySelector('.left-nav').classList.toggle('mobile-open')"><i class="fas fa-bars"></i></button>
+    <a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a>
+    <div class="divider-v"></div>
+    <div class="ws-switcher ws-private" onclick="toggleWorkspaceDropdown(event)">
+      <div class="ws-switcher-icon">P</div>
+      <div><div class="ws-switcher-label">My Private</div><div class="ws-switcher-meta">Free tier &bull; 200 runs/mo</div></div>
+      <span class="ws-switcher-arrow"><i class="fas fa-chevron-down"></i></span>
+    </div>
+    <div class="ws-dropdown hidden"></div>
+  </div>
+  <div class="top-bar-right">
+    <div class="role-chip-bar" onclick="openModal('role-edit-modal')">
+      <span>You're set as <strong>Consultant</strong>, <strong>Consulting</strong></span>
+      <i class="fas fa-pencil-alt"></i>
+    </div>
+    <button class="notif-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme"><i class="fas fa-sun"></i></button>
+    <a href="approvals.html" class="notif-btn" title="Approvals"><i class="fas fa-bell"></i><span class="notif-dot"></span></a>
+    <div class="avatar">AM</div>
+  </div>
+</header>
+
+<!-- Left Navigation -->
+<nav class="left-nav" role="navigation" aria-label="Main navigation"></nav>
+
+<!-- Main Content -->
+<main class="app-content">
+  <div id="banner-area"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>Find AI tools for your team's work.</h1>
+      <p>Discover agents, datasets, and roleplays tailored to EY methods—use them in a governed workspace tied to your engagement.</p>
+
+      <!-- Inline Finder Wrapper -->
+      <div class="finder-wrapper" style="margin-top:24px;max-width:780px">
+        <!-- Search Input -->
+        <div class="search-input-wrap" id="finder-input-wrap">
+          <i class="fas fa-search" style="color:var(--ey-gray-500)"></i>
+          <input class="search-input" id="finder-input" placeholder="Describe your task (e.g., 'Draft a proposal for a retail client using last quarter's credentials')." maxlength="512" oninput="updateFinderCharCount()">
+          <button class="search-submit" onclick="submitFinderSearch()">Search</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+          <div class="char-counter"><span id="finder-char-count">0</span>/512</div>
+          <div style="position:relative">
+            <span class="search-helper" style="font-size:var(--font-size-10);color:var(--ey-gray-500);cursor:pointer;display:inline-flex;align-items:center;gap:4px" onclick="document.getElementById('rec-popover').classList.toggle('hidden')"><i class="fas fa-question-circle"></i> How recommendations work</span>
+            <div id="rec-popover" class="hidden" style="position:absolute;bottom:calc(100% + 8px);right:0;background:var(--modal-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:16px;width:320px;box-shadow:var(--shadow-xl);z-index:50">
+              <ul style="list-style:none;padding:0">
+                <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-database" style="color:var(--ey-blue);margin-top:2px"></i> Searches across agents, roleplays, datasets, and MCP connectors.</li>
+                <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-sort-amount-down" style="color:var(--ey-blue);margin-top:2px"></i> Ranks by role, service line, tasks, and governance fit.</li>
+                <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-robot" style="color:var(--ey-blue);margin-top:2px"></i> For general questions, suggests M365 Copilot.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role Cards (mini, inline) -->
+        <div style="margin-top:16px">
+          <div style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px">Or choose your role to see suggested tasks</div>
+          <div class="mini-role-grid" id="mini-role-grid"></div>
+        </div>
+
+        <!-- Task Chips (appear when role selected) -->
+        <div id="finder-tasks-area" class="hidden" style="margin-top:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;letter-spacing:0.3px">Suggested tasks <span id="finder-role-label" style="color:var(--text-primary);text-transform:none"></span></div>
+            <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px" onclick="clearFinderRole()"><i class="fas fa-times"></i> Clear role</button>
+          </div>
+          <div class="task-chips" id="finder-task-chips"></div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="submitFinderSearch()"><i class="fas fa-search"></i> See results</button>
+            <span class="text-xs text-muted" id="finder-task-count">Select tasks to refine results</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="page-container">
+    <!-- Quick Actions -->
+    <div class="section-block">
+      <div class="quick-actions">
+        <div class="qa-card" onclick="navigateTo('agent-studio.html')"><div class="qa-icon agent"><i class="fas fa-robot"></i></div><div class="qa-text"><h4>Create Agent</h4><p>Start from a blueprint or build custom</p></div></div>
+        <div class="qa-card" onclick="openWorkspaceModal()"><div class="qa-icon workspace"><i class="fas fa-layer-group"></i></div><div class="qa-text"><h4>Create Workspace</h4><p>Link your engagement code</p></div></div>
+        <div class="qa-card" onclick="alert('Roleplay creator opening...')"><div class="qa-icon roleplay"><i class="fas fa-comments"></i></div><div class="qa-text"><h4>Create Roleplay</h4><p>Scenario-based practice sessions</p></div></div>
+        <div class="qa-card" onclick="alert('Opening M365 Copilot chat...')"><div class="qa-icon copilot"><i class="fab fa-microsoft"></i></div><div class="qa-text"><h4>Open M365 Copilot</h4><p>For general questions</p></div></div>
+      </div>
+    </div>
+
+    <!-- Favorites Rail -->
+    <div class="section-block">
+      <div class="section-header">
+        <div class="section-title"><h3><i class="fas fa-star" style="color:var(--text-primary);margin-right:6px"></i> Your favorites</h3></div>
+      </div>
+      <div class="favorites-rail" id="favorites-rail"></div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="dashboard-main">
+
+        <!-- Your Recent Workspaces -->
+        <div class="section-block">
+          <div class="section-header">
+            <div class="section-title"><h3>Your recent workspaces</h3></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <select class="form-select" style="width:auto;padding:4px 8px;font-size:0.786rem" id="ws-sort" onchange="renderWorkspaceTiles()">
+                <option value="recent">Most recently active</option>
+                <option value="name">Name</option>
+                <option value="budget">Budget used</option>
+              </select>
+            </div>
+          </div>
+          <div class="ws-tiles" id="ws-tiles"></div>
+        </div>
+
+        <!-- Discover & Consume -->
+        <div class="section-block">
+          <div class="section-header">
+            <div class="section-title"><div class="section-icon discover"><i class="fas fa-compass"></i></div><div><h3>Discover & Consume</h3><span class="text-xs text-muted">AI assets tailored to your work</span></div></div>
+            <a href="finder.html" class="btn btn-ghost btn-sm">View all <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div class="section-sub">Recommended for you</div>
+          <div class="card-row" id="recommended-row"></div>
+          <div class="section-sub">New this week</div>
+          <div class="card-row" id="new-row"></div>
+          <div class="section-sub">Trending in Consulting</div>
+          <div class="card-row" id="trending-row"></div>
+        </div>
+
+        <!-- Build (Agent Studio) -->
+        <div class="section-block">
+          <div class="section-header">
+            <div class="section-title"><div class="section-icon build"><i class="fas fa-flask"></i></div><div><h3>Build</h3><span class="text-xs text-muted">Agent Studio & blueprints</span></div></div>
+            <a href="agent-studio.html" class="btn btn-ghost btn-sm">Open Studio <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div class="section-sub">Start from a blueprint</div>
+          <div class="card-row">
+            <div class="blueprint-card" onclick="navigateTo('agent-studio.html')"><i class="fas fa-brain"></i><p>RAG Agent</p><span class="text-xs text-muted">Retrieval-augmented</span></div>
+            <div class="blueprint-card" onclick="navigateTo('agent-studio.html')"><i class="fas fa-check-double"></i><p>Approval Flow</p><span class="text-xs text-muted">Human-in-the-loop</span></div>
+            <div class="blueprint-card" onclick="navigateTo('agent-studio.html')"><i class="fas fa-project-diagram"></i><p>Multi-Agent</p><span class="text-xs text-muted">Orchestrated pipeline</span></div>
+          </div>
+          <div class="section-sub">Continue your agents</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md)"><div style="display:flex;align-items:center;gap:10px"><div class="asset-type-icon agent"><i class="fas fa-robot"></i></div><div><div style="font-weight:600;font-size:0.857rem">Client Intake Agent</div><div class="text-xs text-muted">Draft &bull; Last edited 2 days ago</div></div></div><button class="btn btn-sm btn-secondary" onclick="navigateTo('agent-studio.html')">Resume</button></div>
+          </div>
+          <div class="section-sub" style="margin-top:16px">Publication Readiness</div>
+          <div class="readiness-score">
+            <div class="readiness-ring" style="background:conic-gradient(var(--ey-green) 0% 72%, var(--card-border) 72% 100%)"><span style="background:var(--card-bg);width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center">72%</span></div>
+            <div class="readiness-items">
+              <div class="readiness-item"><i class="fas fa-check-circle"></i> Security scan passed</div>
+              <div class="readiness-item"><i class="fas fa-check-circle"></i> Metadata complete</div>
+              <div class="readiness-item"><i class="fas fa-exclamation-circle"></i> Evaluation coverage: 68% (target 80%)</div>
+              <div class="readiness-item"><i class="fas fa-times-circle"></i> Missing: output schema documentation</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Control (Governance) -->
+        <div class="section-block">
+          <div class="section-header">
+            <div class="section-title"><div class="section-icon control"><i class="fas fa-shield-alt"></i></div><div><h3>Control</h3><span class="text-xs text-muted">Governance & budgets</span></div></div>
+            <a href="budgets.html" class="btn btn-ghost btn-sm">Dashboard <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div id="control-section"></div>
+        </div>
+
+        <!-- Extend (Connectors/MCP) -->
+        <div class="section-block">
+          <div class="section-header">
+            <div class="section-title"><div class="section-icon extend"><i class="fas fa-plug"></i></div><div><h3>Extend</h3><span class="text-xs text-muted">Connectors & MCP</span></div></div>
+            <button class="btn btn-ghost btn-sm">View all <i class="fas fa-arrow-right"></i></button>
+          </div>
+          <div class="section-sub">EY-approved connectors</div>
+          <div class="card-row">
+            <div class="connector-card" onclick="navigateToAsset('sharepoint')"><div class="connector-icon"><i class="fab fa-microsoft"></i></div><div class="connector-info"><h4>SharePoint Connector</h4><p>Document retrieval &bull; EY Tenant</p></div><span class="chip chip-green">Active</span></div>
+            <div class="connector-card" onclick="navigateToAsset('outlook')"><div class="connector-icon"><i class="fas fa-envelope"></i></div><div class="connector-info"><h4>Outlook Connector</h4><p>Email summarization &bull; EY Tenant</p></div><span class="chip chip-green">Active</span></div>
+            <div class="connector-card"><div class="connector-icon" style="background:var(--chip-bg);color:var(--ey-gray-500)"><i class="fas fa-plus"></i></div><div class="connector-info"><h4>Request Connector</h4><p>Submit a new connector request</p></div></div>
+          </div>
+          <div class="section-sub">What's new</div>
+          <div style="padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md);font-size:0.857rem"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="chip chip-blue">New</span><strong>Teams Connector (EY Tenant)</strong></div><p class="text-xs text-muted">Meeting summaries and action items. Coming soon to approved workspaces.</p></div>
+        </div>
+
+        <!-- Continue Where You Left Off -->
+        <div class="section-block">
+          <div class="section-header">
+            <div class="section-title"><div class="section-icon history"><i class="fas fa-history"></i></div><div><h3>Continue where you left off</h3><span class="text-xs text-muted">Your recent activity</span></div></div>
+            <div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="alert('Pinned')"><i class="fas fa-thumbtack"></i></button><button class="btn btn-ghost btn-sm" onclick="alert('History cleared')">Clear</button></div>
+          </div>
+          <div id="continue-section"></div>
+        </div>
+      </div>
+
+      <!-- Right Rail -->
+      <aside class="right-rail">
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-tasks" style="margin-right:6px;color:var(--ey-blue)"></i> Approvals & To-dos</h3><a href="approvals.html" class="btn btn-ghost btn-sm">View all</a></div>
+          <div class="card-body" id="rail-approvals"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-chart-line" style="margin-right:6px;color:var(--ey-green)"></i> Budget & Spend</h3><a href="budgets.html" class="btn btn-ghost btn-sm">Details</a></div>
+          <div class="card-body" id="budget-widget"></div>
+        </div>
+        <div class="card" id="migration-banner">
+          <div class="card-body" style="background:var(--badge-warning-bg);border-radius:var(--radius-md)">
+            <div style="display:flex;align-items:start;gap:10px"><i class="fas fa-exclamation-triangle" style="color:var(--ey-orange);margin-top:2px"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-orange)">Legacy Workspace Migration</div><p class="text-sm" style="margin-top:4px">Standard workspaces will require an engagement code by June 30, 2026. Free usage will end.</p><button class="btn btn-sm btn-secondary" style="margin-top:8px" onclick="openWorkspaceModal()">Add Engagement Code</button></div></div>
+          </div>
+        </div>
+        <div class="card" id="roi-widget">
+          <div class="card-header"><h3><i class="fas fa-tachometer-alt" style="margin-right:6px;color:var(--ey-purple)"></i> Manager ROI Overview</h3></div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div class="stat-box" style="padding:8px"><div class="stat-value" style="font-size:1.14rem">142h</div><div class="stat-label">Time Saved</div></div>
+              <div class="stat-box" style="padding:8px"><div class="stat-value" style="font-size:1.14rem">$10.5k</div><div class="stat-label">Total Spend</div></div>
+            </div>
+            <div style="font-size:0.786rem;color:var(--ey-green);display:flex;align-items:center;gap:4px"><i class="fas fa-arrow-up"></i> 13.5x ROI (time saved vs spend)</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<!-- Results Tray (bottom-docked drawer) -->
+<div class="results-tray" id="results-tray">
+  <div class="results-tray-header">
+    <div><strong>Top Results</strong> <span class="text-sm text-muted" id="tray-count"></span></div>
+    <div style="display:flex;gap:8px">
+      <a href="finder.html" class="btn btn-sm btn-secondary">View all results</a>
+      <button class="btn btn-sm btn-ghost" onclick="closeResultsTray()"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="results-tray-body">
+    <div id="copilot-cta" class="hidden" style="padding:10px 14px;background:var(--badge-info-bg);border-radius:var(--radius-md);margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:0.857rem;color:var(--ey-blue)">
+      <i class="fab fa-microsoft"></i> This looks like a general question. <a href="#" onclick="event.preventDefault();alert('Opening M365 Copilot...')"><strong>Try M365 Copilot chat</strong></a> — we still found some relevant assets below.
+    </div>
+    <div class="results-tray-cards" id="tray-results"></div>
+  </div>
+</div>
+
+<!-- Workspace Creation Modal -->
+<div class="modal-overlay" id="ws-create-modal">
+  <div class="modal">
+    <div class="modal-header"><h2>Create Team Workspace</h2><button class="modal-close" onclick="closeModal('ws-create-modal')">&times;</button></div>
+    <div class="stepper"><div class="step active"><span class="step-num">1</span> Basics</div><div class="step-connector"></div><div class="step"><span class="step-num">2</span> Engagement Code</div><div class="step-connector"></div><div class="step"><span class="step-num">3</span> Members & Assets</div><div class="step-connector"></div><div class="step"><span class="step-num">4</span> Budgets & Policies</div></div>
+    <div class="modal-body" id="ws-create-body"></div>
+    <div class="modal-footer" id="ws-create-footer"></div>
+  </div>
+</div>
+
+<!-- Run Panel -->
+<div class="run-panel-overlay" id="run-panel" onclick="if(event.target===this)closeModal('run-panel')">
+  <div class="run-panel"><div class="run-panel-header"><h3>Run Asset</h3><button class="modal-close" onclick="closeModal('run-panel')">&times;</button></div><div class="run-panel-body" id="run-panel-body"></div><div class="run-panel-footer" id="run-panel-footer"></div></div>
+</div>
+
+<!-- Role-Task Profile Modal -->
+<div class="modal-overlay" id="role-edit-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h2>Role-Task Profile</h2><button class="modal-close" onclick="closeModal('role-edit-modal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Role</label><select class="form-select" id="profile-role" onchange="updateProfileTasks()">
+        <option>Consultant</option><option>Business Analyst</option><option>Accountant</option><option>Delivery Manager</option><option>Engagement Manager</option><option>UX Designer</option><option>Manager</option><option>Data Analyst</option><option>Hiring Manager</option><option>Developer</option>
+      </select></div>
+      <div class="form-group"><label>Service Line</label><select class="form-select" id="profile-sl">
+        <option>Consulting</option><option>Fabric</option><option>Assurance</option><option>Tax</option><option>Strategy and Transactions</option><option>Internal Functions</option>
+      </select></div>
+      <div class="form-group"><label>Top Tasks (select 3-5)</label><div class="wizard-chips" id="profile-tasks"></div><div class="form-help">These pre-seed Finder chips and personalize recommendations.</div></div>
+    </div>
+    <div class="modal-footer"><div></div><button class="btn btn-primary" onclick="saveProfile()">Save Profile</button></div>
+  </div>
+</div>
+
+<!-- State Switcher -->
+<div class="state-switcher">
+  <div class="state-switcher-header" onclick="toggleStateSwitcher()"><span><i class="fas fa-sliders-h"></i> Prototype States</span><i class="fas fa-chevron-up"></i></div>
+  <div class="state-switcher-body"></div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const FINDER_ROLES = [
+  { id: 'manager', name: 'Manager', icon: 'fa-briefcase' },
+  { id: 'analyst', name: 'Business Analyst', icon: 'fa-chart-line' },
+  { id: 'accountant', name: 'Accountant', icon: 'fa-calculator' },
+  { id: 'consultant', name: 'Consultant', icon: 'fa-lightbulb' },
+  { id: 'ux', name: 'UX Designer', icon: 'fa-pen-ruler' },
+  { id: 'data-analyst', name: 'Data Analyst', icon: 'fa-database' },
+  { id: 'developer', name: 'Developer', icon: 'fa-code' },
+  { id: 'hiring', name: 'Hiring Manager', icon: 'fa-user-friends' },
+  { id: 'steward', name: 'Data Steward', icon: 'fa-server' },
+  { id: 'security', name: 'Security/Compliance', icon: 'fa-lock' },
+  { id: 'team-lead', name: 'Team Lead', icon: 'fa-shield-alt' },
+  { id: 'finance', name: 'Finance', icon: 'fa-coins' }
+];
+const FINDER_TASKS = {
+  'manager': ['Create workspace', 'Set budgets/caps', 'Approve access', 'Assign roleplays', 'Review spend', 'Team analytics'],
+  'analyst': ['Summarize docs', 'Draft client deck', 'Extract tables', 'Create workspace', 'Data visualization', 'Policy Q&A'],
+  'accountant': ['Import trial balance', 'Tie out figures', 'Policy Q&A', 'Create evidence package', 'Reconciliation check', 'Audit prep'],
+  'consultant': ['Draft proposal', 'Compile credentials', 'Summarize client materials', 'Request dataset access', 'Client pitch prep', 'Research analysis'],
+  'ux': ['Synthesize research notes', 'Generate personas', 'Draft wireframe copy', 'Stakeholder interview roleplay', 'Usability testing', 'Design review'],
+  'data-analyst': ['Connect dataset', 'Build RAG agent', 'Run structured extraction', 'Test in sandbox', 'Data profiling', 'Create pipeline'],
+  'developer': ['Start from blueprint', 'Debug agent', 'Request connector', 'Publish to marketplace', 'API integration', 'Test agent'],
+  'hiring': ['Draft JD', 'Interview roleplay', 'Screen candidates', 'Create hiring workspace', 'Onboarding prep', 'Salary benchmarking'],
+  'steward': ['Review data requests', 'Monitor query volumes', 'Investigate violations', 'Approve dataset access', 'Set data policies', 'Audit trail'],
+  'security': ['Security assessment', 'Compliance review', 'Risk analysis', 'Policy audit', 'Access control review', 'Incident investigation'],
+  'team-lead': ['Manage members', 'Review budgets', 'Assign tasks', 'Approve requests', 'Run reports', 'Set policies'],
+  'finance': ['Budget analysis', 'Procurement review', 'Cost optimization', 'Vendor assessment', 'Financial reporting', 'Spend analytics']
+};
+let finderSelectedRole = null;
+let finderSelectedTasks = [];
+
+function renderMiniRoleGrid() {
+  const grid = $('#mini-role-grid');
+  if (!grid) return;
+  grid.innerHTML = FINDER_ROLES.map(r => `
+    <div class="mini-role-card ${finderSelectedRole === r.id ? 'selected' : ''}" onclick="selectFinderRole('${r.id}')">
+      <div class="mini-role-icon"><i class="fas ${r.icon}"></i></div>
+      <span class="mini-role-name">${r.name}</span>
+    </div>`).join('');
+}
+
+function selectFinderRole(roleId) {
+  if (finderSelectedRole === roleId) { clearFinderRole(); return; }
+  finderSelectedRole = roleId;
+  finderSelectedTasks = [];
+  renderMiniRoleGrid();
+  renderFinderTasks();
+  show($('#finder-tasks-area'));
+}
+
+function clearFinderRole() {
+  finderSelectedRole = null;
+  finderSelectedTasks = [];
+  renderMiniRoleGrid();
+  hide($('#finder-tasks-area'));
+}
+
+function renderFinderTasks() {
+  const container = $('#finder-task-chips');
+  const label = $('#finder-role-label');
+  if (!container) return;
+  const role = FINDER_ROLES.find(r => r.id === finderSelectedRole);
+  if (label) label.textContent = role ? `for ${role.name}` : '';
+  const tasks = FINDER_TASKS[finderSelectedRole] || [];
+  container.innerHTML = tasks.map(t => `<div class="task-chip ${finderSelectedTasks.includes(t) ? 'selected' : ''}" onclick="toggleFinderTask(this,'${t}')">${t}</div>`).join('');
+  updateFinderTaskCount();
+}
+
+function toggleFinderTask(el, task) {
+  const idx = finderSelectedTasks.indexOf(task);
+  if (idx >= 0) finderSelectedTasks.splice(idx, 1);
+  else finderSelectedTasks.push(task);
+  el.classList.toggle('selected');
+  updateFinderTaskCount();
+}
+
+function updateFinderTaskCount() {
+  const counter = $('#finder-task-count');
+  if (counter) counter.textContent = finderSelectedTasks.length > 0 ? `${finderSelectedTasks.length} task(s) selected` : 'Select tasks to refine results';
+}
+
+function updateFinderCharCount() {
+  const input = $('#finder-input');
+  const counter = $('#finder-char-count');
+  if (input && counter) counter.textContent = input.value.length;
+}
+
+function submitFinderSearch() {
+  const query = $('#finder-input')?.value.trim();
+  const hasRole = finderSelectedRole !== null;
+  const hasTasks = finderSelectedTasks.length > 0;
+  if (!query && !hasRole && !hasTasks) return;
+
+  const tray = $('#results-tray');
+  const trayResults = $('#tray-results');
+  const trayCount = $('#tray-count');
+  const copilotCta = $('#copilot-cta');
+
+  const isGeneric = query && (query.length < 20 || /what is|how do|explain|help me/i.test(query));
+  if (isGeneric && copilotCta) show(copilotCta);
+  else if (copilotCta) hide(copilotCta);
+
+  const results = getAllAssets().slice(0, 4);
+  if (trayResults) trayResults.innerHTML = results.map(a => renderAssetCard(a, true)).join('');
+  if (trayCount) trayCount.textContent = `(${getAllAssets().length} total)`;
+  if (tray) tray.classList.add('open');
+}
+
+function closeResultsTray() {
+  const tray = $('#results-tray');
+  if (tray) tray.classList.remove('open');
+}
+
+function renderFavoritesRail() {
+  const rail = $('#favorites-rail');
+  if (!rail) return;
+  const favAssets = getAllAssets().filter(a => isFavorite(a.id));
+  if (!favAssets.length) { rail.innerHTML = '<p class="text-sm text-muted">Star assets to add them here.</p>'; return; }
+  rail.innerHTML = favAssets.map(a => `
+    <div class="fav-card" onclick="navigateToAsset('${a.id}')">
+      <i class="fas fa-star fav-star" onclick="event.stopPropagation();toggleFavorite('${a.id}')"></i>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div class="asset-type-icon ${typeClass(a.type)}" style="width:22px;height:22px;font-size:10px"><i class="fas ${typeIcon(a.type)}"></i></div>
+        <span class="text-xs" style="color:var(--ey-gray-500)">${a.type}</span>
+      </div>
+      <div style="font-weight:600;font-size:0.857rem;margin-bottom:4px">${a.name}</div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-primary btn-sm" style="font-size:9px;padding:2px 8px" onclick="event.stopPropagation();handleRun('${a.id}')">Run</button>
+        <button class="btn btn-secondary btn-sm" style="font-size:9px;padding:2px 8px" onclick="event.stopPropagation();handleAddToWorkspace('${a.id}')">Add</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderWorkspaceTiles() {
+  const container = $('#ws-tiles');
+  if (!container) return;
+  let wsList = [WORKSPACES.acme, WORKSPACES.globo, WORKSPACES.retail];
+  const sort = $('#ws-sort')?.value || 'recent';
+  if (sort === 'name') wsList.sort((a,b) => a.name.localeCompare(b.name));
+  else if (sort === 'budget') wsList.sort((a,b) => (b.pct||0) - (a.pct||0));
+  container.innerHTML = wsList.map(ws => {
+    const rolePill = ws.role ? `<span class="chip chip-${ws.role==='Admin'?'blue':ws.role==='Editor'?'green':'default'}">${ws.role}</span>` : '';
+    const avatars = (ws.participants||[]).slice(0,3).map(p => `<div class="avatar" title="${p.n}">${p.i}</div>`).join('');
+    const extraCount = (ws.participants||[]).length > 3 ? `<div class="avatar" style="background:var(--chip-bg);color:var(--ey-gray-500);font-size:8px">+${ws.participants.length - 3}</div>` : '';
+    const agentChips = (ws.agents||[]).slice(0,3).map(a => `<span class="chip chip-default" style="font-size:9px">${a}</span>`).join('');
+    const budgetBar = ws.budget ? `<div class="ws-tile-budget"><div class="progress-bar" style="height:4px"><div class="progress-fill ${ws.pct > 75 ? 'orange' : 'green'}" style="width:${ws.pct}%"></div></div><div class="text-xs text-muted" style="margin-top:2px">${ws.pct}% of $${(ws.budget/1000).toFixed(0)}k</div></div>` : '';
+    return `<div class="ws-tile" onclick="switchWorkspace('${ws.id}')">
+      <div class="ws-tile-header"><div class="ws-tile-name">${ws.name}</div>${rolePill}</div>
+      <div class="ws-tile-desc">${ws.desc || ''}</div>
+      <div class="ws-tile-meta">
+        <span class="chip chip-${ws.status==='approved'?'green':'orange'}" style="font-size:9px">${ws.engCode}</span>
+        <span class="text-xs text-muted"><i class="fas fa-clock"></i> ${ws.lastActivity || 'N/A'}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="ws-tile-avatars">${avatars}${extraCount}</div>
+        <div class="ws-tile-agents">${agentChips}</div>
+      </div>
+      ${budgetBar}
+    </div>`;
+  }).join('');
+}
+
+function renderControlSection() {
+  const container = $('#control-section');
+  if (!container) return;
+  const wsList = [WORKSPACES.acme, WORKSPACES.globo];
+  container.innerHTML = `
+    <div class="section-sub">Your workspaces and budgets</div>
+    ${wsList.map(ws => `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md);margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:28px;height:28px;background:var(--ey-green);color:#1A1A24;font-size:10px">${ws.icon}</div><div><div style="font-weight:600;font-size:0.857rem">${ws.name}</div><div class="text-xs text-muted">${ws.engCode}</div></div></div>
+      <div style="display:flex;align-items:center;gap:12px"><div style="width:80px"><div class="progress-bar" style="height:6px"><div class="progress-fill ${ws.pct>75?'orange':'green'}" style="width:${ws.pct}%"></div></div><div class="text-xs text-muted">${ws.pct}%</div></div><span class="chip chip-green">Approved</span></div>
+    </div>`).join('')}
+    <div class="section-sub">Policy alerts</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--badge-warning-bg);border-radius:var(--radius-md);font-size:0.857rem;color:var(--ey-orange);margin-bottom:6px"><i class="fas fa-exclamation-triangle"></i> GloboCo Finance Controls: 67% budget used. Approaching soft cap (75%).</div>
+    <div class="section-sub">Pending approvals</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md)"><div style="display:flex;align-items:center;gap:10px"><div class="approval-icon access"><i class="fas fa-key"></i></div><div><div style="font-weight:600;font-size:0.857rem">5 pending approvals</div><div class="text-xs text-muted">2 workspace, 1 dataset, 1 publication, 1 budget</div></div></div><a href="approvals.html" class="btn btn-sm btn-secondary">Review <i class="fas fa-arrow-right"></i></a></div>`;
+}
+
+function renderContinueSection() {
+  const container = $('#continue-section');
+  if (!container) return;
+  const items = [
+    { icon: 'fa-robot', cls: 'agent', name: 'RFP Draft Agent', meta: 'Completed \u2022 3 hours ago \u2022 ACME Retail RFP Team', actions: 'rerun', id: 'rfp-draft', locked: false },
+    { icon: 'fa-comments', cls: 'roleplay', name: 'Client Pitch Roleplay', meta: 'Completed \u2022 Yesterday \u2022 My Private', actions: 'rerun', id: 'client-pitch', locked: false },
+    { icon: 'fa-comments', cls: 'roleplay', name: 'Controls Walkthrough Roleplay', meta: 'Pending \u2022 Due Mar 14 \u2022 Assigned by Jane Patel', actions: 'start', id: 'controls-walkthrough', locked: isPendingWorkspace() },
+    { icon: 'fa-clock', cls: 'access', name: 'Dataset access: EY Credentials Repository', meta: 'Pending approval \u2022 Submitted 1 day ago', actions: 'status', locked: false }
+  ];
+  container.innerHTML = items.map(item => {
+    const lockIcon = item.locked ? '<i class="fas fa-lock" style="color:var(--ey-orange);margin-right:4px" title="Workspace pending approval"></i>' : '';
+    let actionHtml = '';
+    if (item.actions === 'rerun') actionHtml = `<button class="btn btn-sm btn-secondary" onclick="handleRun('${item.id}')">Re-run</button><button class="btn btn-sm btn-ghost">Save as Recipe</button>`;
+    else if (item.actions === 'start') actionHtml = `<button class="btn btn-sm btn-primary" ${item.locked?'disabled':''} onclick="handleRun('${item.id}')">${lockIcon}Start</button>`;
+    else actionHtml = '<span class="chip chip-orange">Pending</span>';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md);margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:10px"><div class="asset-type-icon ${item.cls}"><i class="fas ${item.icon}"></i></div><div><div style="font-weight:600;font-size:0.857rem">${item.name}</div><div class="text-xs text-muted">${item.meta}</div></div></div>
+      <div style="display:flex;gap:6px">${actionHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRailApprovals() {
+  const container = $('#rail-approvals');
+  if (!container) return;
+  container.innerHTML = `
+    <div style="display:flex;align-items:start;gap:10px;padding:10px 0;border-bottom:1px solid var(--card-border)">
+      <div class="approval-icon access"><i class="fas fa-key"></i></div>
+      <div style="flex:1"><p style="font-size:0.857rem"><strong>Sarah Kim</strong> requests access to ACME workspace</p><div class="text-xs text-muted">2 hours ago</div><div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-sm btn-primary" onclick="alert('Approved')">Approve</button><button class="btn btn-sm btn-secondary" onclick="alert('Denied')">Deny</button></div></div>
+    </div>
+    <div style="display:flex;align-items:start;gap:10px;padding:10px 0;border-bottom:1px solid var(--card-border)">
+      <div class="approval-icon dataset"><i class="fas fa-database"></i></div>
+      <div style="flex:1"><p style="font-size:0.857rem"><strong>Dataset approval</strong>: Credentials Repo for Controls team</p><div class="text-xs text-muted">1 day ago</div><div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-sm btn-primary" onclick="alert('Approved')">Approve</button><button class="btn btn-sm btn-secondary" onclick="alert('Denied')">Deny</button></div></div>
+    </div>
+    <div style="display:flex;align-items:start;gap:10px;padding:10px 0">
+      <div class="approval-icon budget"><i class="fas fa-dollar-sign"></i></div>
+      <div style="flex:1"><p style="font-size:0.857rem"><strong>Budget override</strong>: GloboCo approaching hard cap</p><div class="text-xs text-muted">3 hours ago</div><div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-sm btn-primary" onclick="alert('Override approved')">Override</button><button class="btn btn-sm btn-secondary" onclick="alert('Dismissed')">Dismiss</button></div></div>
+    </div>`;
+}
+
+function renderBudgetWidget() {
+  const widget = $('#budget-widget');
+  if (!widget) return;
+  if (STATE.workspace === 'private') {
+    widget.innerHTML = `<div><div style="display:flex;justify-content:space-between;font-size:0.857rem;margin-bottom:6px"><span style="font-weight:600">My Private Usage</span><span>127 / 200 runs</span></div><div class="progress-bar"><div class="progress-fill green" style="width:63.5%"></div></div><div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--chip-bg);border-radius:var(--radius-sm);margin-top:8px;font-size:0.857rem;color:var(--ey-gray-600)"><i class="fas fa-chart-line" style="color:var(--ey-blue)"></i> ~32 runs projected next 7 days</div></div>`;
+  } else if (STATE.workspace === 'approved') {
+    widget.innerHTML = `<div><div style="display:flex;justify-content:space-between;font-size:0.857rem;margin-bottom:6px"><span style="font-weight:600">ACME Retail RFP Team</span><span>$10,500 / $25,000</span></div><div class="progress-bar"><div class="progress-fill green" style="width:42%"></div></div><div class="progress-markers"><span class="progress-marker" style="left:75%">75%</span><span class="progress-marker" style="left:100%">100%</span></div><div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--chip-bg);border-radius:var(--radius-sm);margin-top:12px;font-size:0.857rem;color:var(--ey-gray-600)"><i class="fas fa-chart-line" style="color:var(--ey-blue)"></i> $2,100 forecast next 7 days</div></div>`;
+  } else {
+    widget.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--badge-warning-bg);border-radius:var(--radius-md)"><i class="fas fa-clock" style="color:var(--ey-orange)"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-orange)">Workspace pending</div><p class="text-xs">Budget tracking begins after approval.</p></div></div>`;
+  }
+}
+
+function updateProfileTasks() {
+  const role = $('#profile-role')?.value || 'Consultant';
+  const tasks = PERSONAS[role] || [];
+  const container = $('#profile-tasks');
+  if (container) container.innerHTML = tasks.map((t, i) => `<span class="wizard-chip ${i < 3 ? 'selected' : ''}" onclick="this.classList.toggle('selected')">${t}</span>`).join('');
+}
+
+function saveProfile() {
+  const role = $('#profile-role')?.value;
+  const sl = $('#profile-sl')?.value;
+  if (role) STATE.currentUser.role = role;
+  if (sl) STATE.currentUser.serviceLine = sl;
+  const selected = $$('#profile-tasks .wizard-chip.selected').map(c => c.textContent);
+  STATE.currentUser.tasks = selected;
+  $('.role-chip-bar span').innerHTML = `You're set as <strong>${role}</strong>, <strong>${sl}</strong>`;
+  closeModal('role-edit-modal');
+  updatePageUI();
+}
+
+function updatePageUI() {
+  renderMiniRoleGrid();
+  renderFavoritesRail();
+  renderWorkspaceTiles();
+  renderControlSection();
+  renderContinueSection();
+  renderRailApprovals();
+  renderBudgetWidget();
+  updateProfileTasks();
+
+  const recommended = [...ASSETS.agents.slice(0, 2), ...ASSETS.roleplays.slice(0, 1)];
+  const newAssets = getAllAssets().filter(a => a.isNew);
+  const trending = [...ASSETS.agents.slice(0, 2), ...ASSETS.roleplays.slice(0, 1), ...ASSETS.mcp.slice(0, 1)];
+
+  const recRow = $('#recommended-row');
+  const newRow = $('#new-row');
+  const trendRow = $('#trending-row');
+  if (recRow) recRow.innerHTML = recommended.map(a => renderAssetCard(a, false)).join('');
+  if (newRow) newRow.innerHTML = newAssets.length ? newAssets.map(a => renderAssetCard(a, false)).join('') : '<p class="text-sm text-muted">No new assets this week.</p>';
+  if (trendRow) trendRow.innerHTML = trending.map(a => renderAssetCard(a, false)).join('');
+}
+</script>
+</body>
+</html>
