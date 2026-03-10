@@ -561,6 +561,36 @@ function updatePageUI() {
   if (newRow) newRow.innerHTML = newAssets.length ? newAssets.map(a => renderAssetCard(a, false)).join('') : '<p class="text-sm text-muted">No new assets this week.</p>';
   if (trendRow) trendRow.innerHTML = trending.map(a => renderAssetCard(a, false)).join('');
 }
+
+// Toast
+function showEYQToast() {
+  const toast = $('#eyq-toast');
+  if (!toast) return;
+  setTimeout(() => toast.classList.add('open'), 800);
+}
+function dismissToast() {
+  const toast = $('#eyq-toast');
+  if (toast) toast.classList.remove('open');
+  localStorage.setItem('eyq-toast-dismissed', 'true');
+}
+if (!localStorage.getItem('eyq-toast-dismissed')) {
+  document.addEventListener('DOMContentLoaded', showEYQToast);
+}
 </script>
+
+<!-- EYQ Announcement Toast -->
+<div class="toast" id="eyq-toast">
+  <div class="toast-icon" style="background:var(--badge-info-bg);color:var(--ey-blue)"><i class="fas fa-bullhorn"></i></div>
+  <div class="toast-body">
+    <div class="toast-title">EYQ is your new home for AI assets</div>
+    <div class="toast-message">Starting June 2026, <strong>EYQ</strong> will be the single platform for discovering and running AI agents, roleplays, datasets, and connectors at EY. Use EYQ for productivity tools tied to your engagements.<br><br>For general questions (drafting emails, brainstorming, summarizing), continue using <strong>M365 Copilot</strong>.</div>
+    <div class="toast-actions">
+      <button class="btn btn-primary btn-sm" onclick="dismissToast()">Got it</button>
+      <a href="#" class="btn btn-ghost btn-sm" onclick="event.preventDefault();dismissToast()">Don't show again</a>
+    </div>
+  </div>
+  <button class="toast-close" onclick="dismissToast()">&times;</button>
+</div>
+
 </body>
 </html>
