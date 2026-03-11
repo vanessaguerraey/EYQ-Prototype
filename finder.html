@@ -3,104 +3,206 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EYQ — Results Gallery</title>
+  <title>EYQ — Finder Wizard</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body class="motif-theme-dark">
 
 <header class="top-bar">
-  <div class="top-bar-left"><a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a><div class="divider-v"></div><div class="ws-switcher ws-private" onclick="toggleWorkspaceDropdown(event)"><div class="ws-switcher-icon">P</div><div><div class="ws-switcher-label">My Private</div><div class="ws-switcher-meta">Free tier</div></div><span class="ws-switcher-arrow"><i class="fas fa-chevron-down"></i></span></div><div class="ws-dropdown hidden"></div></div>
-  <div class="top-bar-right"><div class="role-chip-bar"><span>Consultant, Consulting</span></div><button class="notif-btn" id="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-sun"></i></button><a href="approvals.html" class="notif-btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></a><div class="avatar">AM</div></div>
+  <div class="top-bar-left"><a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a></div>
+  <div class="top-bar-right">
+    <span id="role-indicator" class="role-chip-bar" style="cursor:default"><i class="fas fa-shield-alt"></i> Admin</span>
+    <button class="notif-btn" id="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-sun"></i></button>
+    <a href="approvals.html" class="notif-btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></a>
+    <div class="avatar">AM</div>
+  </div>
 </header>
 <nav class="left-nav" role="navigation"></nav>
 
 <main class="app-content">
   <div id="banner-area"></div>
-  <div class="page-container">
-    <nav style="font-size:0.786rem;color:var(--ey-gray-500);margin-bottom:16px"><a href="index.html">Home</a> <i class="fas fa-chevron-right" style="font-size:0.6rem;margin:0 6px"></i> Results Gallery</nav>
 
-    <!-- Inline search refinement -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <div class="search-input-wrap" style="flex:1;max-width:600px">
-        <i class="fas fa-search" style="color:var(--ey-gray-500)"></i>
-        <input class="search-input" id="gallery-search" placeholder="Refine results..." oninput="filterGallery()">
-      </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-secondary btn-sm" onclick="alert('Preset saved!')"><i class="fas fa-bookmark"></i> Save preset</button>
-        <a href="index.html" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to Home</a>
-      </div>
-    </div>
+  <!-- Wizard Stepper Header -->
+  <div class="wizard-fullscreen-stepper" id="wizard-stepper">
+    <div class="step active"><span class="step-num">1</span> Choose your role</div>
+    <div class="step-connector"></div>
+    <div class="step"><span class="step-num">2</span> Service line</div>
+    <div class="step-connector"></div>
+    <div class="step"><span class="step-num">3</span> Pick your tasks</div>
+    <div class="step-connector"></div>
+    <div class="step"><span class="step-num">4</span> Add context</div>
+    <div class="step-connector"></div>
+    <div class="step"><span class="step-num">5</span> Review & results</div>
+  </div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div>
-        <h2>All AI Assets</h2>
-        <p class="text-sm text-muted" id="results-count"></p>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap" id="active-chips"></div>
-    </div>
+  <!-- Wizard Body -->
+  <div style="max-width:960px;margin:0 auto;padding:32px 24px" id="wizard-body"></div>
 
-    <div class="results-layout">
-      <div class="results-filters">
-        <div class="filter-group">
-          <div class="filter-group-title">Type</div>
-          <label class="filter-option"><input type="checkbox" checked onchange="filterGallery()"> Agent</label>
-          <label class="filter-option"><input type="checkbox" checked onchange="filterGallery()"> Roleplay</label>
-          <label class="filter-option"><input type="checkbox" checked onchange="filterGallery()"> Dataset</label>
-          <label class="filter-option"><input type="checkbox" checked onchange="filterGallery()"> MCP</label>
-        </div>
-        <div class="filter-group">
-          <div class="filter-group-title">Risk Tier</div>
-          <label class="filter-option"><input type="checkbox" checked> Low</label>
-          <label class="filter-option"><input type="checkbox" checked> Medium</label>
-          <label class="filter-option"><input type="checkbox" checked> High</label>
-        </div>
-        <div class="filter-group">
-          <div class="filter-group-title">Pricing</div>
-          <label class="filter-option"><input type="checkbox" checked> Free</label>
-          <label class="filter-option"><input type="checkbox" checked> Estimated cost</label>
-          <label class="filter-option"><input type="checkbox" checked> Cost TBD</label>
-        </div>
-        <div class="filter-group">
-          <div class="filter-group-title">Other</div>
-          <label class="filter-option"><input type="checkbox"> Free only</label>
-          <label class="filter-option"><input type="checkbox"> New</label>
-          <label class="filter-option"><input type="checkbox"> Trending</label>
-          <label class="filter-option"><input type="checkbox"> Favorites only</label>
-        </div>
-        <div style="margin-top:16px">
-          <div class="filter-group-title">Your Presets</div>
-          <div style="padding:8px;background:var(--chip-bg);border-radius:var(--radius-md);font-size:var(--font-size-10);color:var(--ey-gray-500)">No saved presets yet.</div>
+  <!-- Wizard Footer -->
+  <div style="position:fixed;bottom:0;left:var(--nav-width);right:0;padding:16px 32px;background:var(--card-bg);border-top:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center;z-index:50" id="wizard-footer"></div>
+
+  <!-- Results Gallery (shown on step 5) -->
+  <div class="hidden" id="results-section" style="padding:0 24px 80px">
+    <div style="max-width:1400px;margin:0 auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div><h2>Results Gallery</h2><p class="text-sm text-muted" id="results-count"></p></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="alert('Preset saved!')"><i class="fas fa-bookmark"></i> Save preset</button>
+          <button class="btn btn-secondary btn-sm" onclick="wizardStep=4;renderWizard()"><i class="fas fa-arrow-left"></i> Refine</button>
         </div>
       </div>
-      <div class="results-grid" id="results-grid"></div>
+      <div class="results-layout">
+        <div class="results-filters">
+          <div class="filter-group"><div class="filter-group-title">Type</div>
+            <label class="filter-option"><input type="checkbox" checked onchange="renderResults()"> Agent</label>
+            <label class="filter-option"><input type="checkbox" checked onchange="renderResults()"> Roleplay</label>
+            <label class="filter-option"><input type="checkbox" checked onchange="renderResults()"> Dataset</label>
+            <label class="filter-option"><input type="checkbox" checked onchange="renderResults()"> MCP</label>
+          </div>
+          <div class="filter-group"><div class="filter-group-title">Pricing</div>
+            <label class="filter-option"><input type="checkbox" checked> Free</label>
+            <label class="filter-option"><input type="checkbox" checked> Estimated cost</label>
+            <label class="filter-option"><input type="checkbox" checked> Cost TBD</label>
+          </div>
+          <div class="filter-group"><div class="filter-group-title">Other</div>
+            <label class="filter-option"><input type="checkbox"> Free only</label>
+            <label class="filter-option"><input type="checkbox"> New</label>
+            <label class="filter-option"><input type="checkbox"> Favorites only</label>
+          </div>
+          <div style="margin-top:16px"><div class="filter-group-title">Your Presets</div><div style="padding:8px;background:var(--chip-bg);border-radius:var(--radius-md);font-size:var(--font-size-10);color:var(--ey-gray-500)">No saved presets yet.</div></div>
+        </div>
+        <div class="results-grid" id="results-grid"></div>
+      </div>
     </div>
   </div>
 </main>
 
+<!-- Workspace Creation Modal -->
 <div class="modal-overlay" id="ws-create-modal"><div class="modal"><div class="modal-header"><h2>Create Team Workspace</h2><button class="modal-close" onclick="closeModal('ws-create-modal')">&times;</button></div><div class="stepper"><div class="step active"><span class="step-num">1</span> Basics</div><div class="step-connector"></div><div class="step"><span class="step-num">2</span> Engagement Code</div><div class="step-connector"></div><div class="step"><span class="step-num">3</span> Members & Assets</div><div class="step-connector"></div><div class="step"><span class="step-num">4</span> Budgets & Policies</div></div><div class="modal-body" id="ws-create-body"></div><div class="modal-footer" id="ws-create-footer"></div></div></div>
-<div class="run-panel-overlay" id="run-panel" onclick="if(event.target===this)closeModal('run-panel')"><div class="run-panel"><div class="run-panel-header"><h3>Run Asset</h3><button class="modal-close" onclick="closeModal('run-panel')">&times;</button></div><div class="run-panel-body" id="run-panel-body"></div><div class="run-panel-footer" id="run-panel-footer"></div></div></div>
+
+<!-- State Switcher -->
 <div class="state-switcher"><div class="state-switcher-header" onclick="toggleStateSwitcher()"><span><i class="fas fa-sliders-h"></i> Prototype States</span><i class="fas fa-chevron-up"></i></div><div class="state-switcher-body"></div></div>
 
 <script src="app.js"></script>
 <script>
-function renderGallery() {
+const WIZARD_ROLES = [
+  { id: 'manager', name: 'Manager', icon: 'fa-briefcase' },
+  { id: 'ws-admin', name: 'Workspace Admin', icon: 'fa-shield-alt' },
+  { id: 'analyst', name: 'Business Analyst', icon: 'fa-chart-line' },
+  { id: 'accountant', name: 'Accountant', icon: 'fa-calculator' },
+  { id: 'consultant', name: 'Consultant', icon: 'fa-lightbulb' },
+  { id: 'ux', name: 'UX Designer', icon: 'fa-pen-ruler' },
+  { id: 'data-analyst', name: 'Data Analyst', icon: 'fa-database' },
+  { id: 'developer', name: 'Developer', icon: 'fa-code' },
+  { id: 'hiring', name: 'Hiring Manager', icon: 'fa-user-friends' },
+  { id: 'steward', name: 'Data Steward', icon: 'fa-server' },
+  { id: 'security', name: 'Security', icon: 'fa-lock' },
+  { id: 'finance', name: 'Finance', icon: 'fa-coins' }
+];
+
+const WIZARD_TASKS = {
+  'manager': ['Approve workspace requests', 'Review spend', 'Assign mandatory roleplay', 'Budget override', 'Team analytics', 'Create workspace'],
+  'ws-admin': ['Create workspace', 'Set budgets/caps', 'Add assets', 'Manage members', 'Review spend', 'Approve access'],
+  'analyst': ['Summarize docs', 'Draft client deck', 'Extract tables', 'Data visualization', 'Policy Q&A', 'Build dashboard'],
+  'accountant': ['Import trial balance', 'Tie out figures', 'Policy Q&A', 'Create evidence package', 'Reconciliation check', 'Audit prep'],
+  'consultant': ['Draft proposal', 'Compile credentials', 'Summarize client materials', 'Client pitch prep', 'Research analysis', 'Request dataset access'],
+  'ux': ['Synthesize research notes', 'Generate personas', 'Draft wireframe copy', 'Stakeholder roleplay', 'Usability testing', 'Design review'],
+  'data-analyst': ['Connect dataset', 'Build RAG agent', 'Run extraction', 'Test in sandbox', 'Data profiling', 'Create pipeline'],
+  'developer': ['Start from blueprint', 'Debug agent', 'Request connector', 'Publish to marketplace', 'API integration', 'Test agent'],
+  'hiring': ['Draft JD', 'Interview roleplay', 'Screen candidates', 'Onboarding prep', 'Salary benchmarking', 'Create hiring workspace'],
+  'steward': ['Review data requests', 'Monitor queries', 'Investigate violations', 'Approve dataset access', 'Set data policies', 'Audit trail'],
+  'security': ['Security assessment', 'Compliance review', 'Risk analysis', 'Policy audit', 'Access control', 'Incident investigation'],
+  'finance': ['Budget analysis', 'Procurement review', 'Cost optimization', 'Financial reporting', 'Spend analytics', 'Vendor assessment']
+};
+
+const SL_OPTIONS = ['Fabric', 'Assurance', 'Tax', 'Consulting', 'Strategy and Transactions', 'Internal Functions'];
+
+let wizardStep = 1;
+let wizardData = { roles: [], serviceLine: '', tasks: [], industry: '', region: '', excludeRestricted: false };
+
+function renderWizard() {
+  const body = $('#wizard-body');
+  const footer = $('#wizard-footer');
+  const resultsSection = $('#results-section');
+  hide(resultsSection);
+  show(body);
+
+  // Update stepper
+  $$('#wizard-stepper .step').forEach((s, i) => {
+    s.classList.remove('active', 'completed');
+    if (i + 1 < wizardStep) s.classList.add('completed');
+    if (i + 1 === wizardStep) s.classList.add('active');
+  });
+
+  if (wizardStep === 1) {
+    body.innerHTML = `<h2 style="margin-bottom:6px">Choose your role</h2><p class="text-muted" style="margin-bottom:20px">Select the role(s) that best describe your work.</p>
+      <div class="role-grid">${WIZARD_ROLES.map(r => `
+        <div class="role-card ${wizardData.roles.includes(r.id)?'selected':''}" onclick="toggleWizRole('${r.id}')">
+          <div class="role-icon"><i class="fas ${r.icon}"></i></div>
+          <div class="role-name">${r.name}</div>
+        </div>`).join('')}</div>`;
+    footer.innerHTML = `<a href="index.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Home</a><button class="btn btn-primary" onclick="wizardStep=2;renderWizard()" ${wizardData.roles.length?'':'disabled'}>Next: Service line <i class="fas fa-arrow-right"></i></button>`;
+  } else if (wizardStep === 2) {
+    body.innerHTML = `<h2 style="margin-bottom:6px">Select your service line</h2><p class="text-muted" style="margin-bottom:20px">Choose the service line most relevant to your current work.</p>
+      <div class="service-line-chips">${SL_OPTIONS.map(sl => `<div class="sl-chip ${wizardData.serviceLine===sl?'selected':''}" onclick="wizardData.serviceLine='${sl}';renderWizard()">${sl}</div>`).join('')}</div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=1;renderWizard()"><i class="fas fa-arrow-left"></i> Back</button><button class="btn btn-primary" onclick="wizardStep=3;renderWizard()" ${wizardData.serviceLine?'':'disabled'}>Next: Tasks <i class="fas fa-arrow-right"></i></button>`;
+  } else if (wizardStep === 3) {
+    const allTasks = new Set();
+    wizardData.roles.forEach(r => (WIZARD_TASKS[r]||[]).forEach(t => allTasks.add(t)));
+    body.innerHTML = `<h2 style="margin-bottom:6px">Pick your tasks</h2><p class="text-muted" style="margin-bottom:20px">Select the tasks you want AI tools for.</p>
+      <div class="task-chips">${[...allTasks].map(t => `<div class="task-chip ${wizardData.tasks.includes(t)?'selected':''}" onclick="toggleWizTask('${t}')">${t}</div>`).join('')}</div>
+      <div class="text-sm text-muted" style="margin-top:12px">${wizardData.tasks.length} task(s) selected</div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=2;renderWizard()"><i class="fas fa-arrow-left"></i> Back</button><button class="btn btn-primary" onclick="wizardStep=4;renderWizard()">Next: Context <i class="fas fa-arrow-right"></i></button>`;
+  } else if (wizardStep === 4) {
+    body.innerHTML = `<h2 style="margin-bottom:6px">Add context (optional)</h2><p class="text-muted" style="margin-bottom:20px">Narrow results with additional filters.</p>
+      <div class="wizard-fields">
+        <div class="wizard-row">
+          <div class="wizard-field"><label>Industry</label><select class="wizard-select" onchange="wizardData.industry=this.value"><option value="">Any</option><option>Retail & Consumer</option><option>Financial Services</option><option>Technology</option><option>Health & Life Sciences</option><option>Government</option></select></div>
+          <div class="wizard-field"><label>Region / Residency</label><select class="wizard-select" onchange="wizardData.region=this.value"><option value="">Any</option><option>US</option><option>EU</option><option>APAC</option><option>UK</option></select></div>
+        </div>
+        <div class="wizard-toggle"><input type="checkbox" ${wizardData.excludeRestricted?'checked':''} onchange="wizardData.excludeRestricted=this.checked"> Exclude assets requiring Restricted datasets</div>
+      </div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=3;renderWizard()"><i class="fas fa-arrow-left"></i> Back</button><button class="btn btn-primary btn-lg" onclick="wizardStep=5;renderWizard()"><i class="fas fa-search"></i> See results</button>`;
+  } else if (wizardStep === 5) {
+    hide(body);
+    show(resultsSection);
+    renderResults();
+    const roleNames = wizardData.roles.map(id => WIZARD_ROLES.find(r=>r.id===id)?.name).filter(Boolean).join(', ');
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=4;renderWizard()"><i class="fas fa-arrow-left"></i> Refine</button>
+      <div class="text-sm text-muted">Showing results for: <strong>${roleNames || 'All'}</strong> &bull; ${wizardData.serviceLine || 'All lines'} &bull; ${wizardData.tasks.length} task(s)</div>
+      <button class="btn btn-secondary btn-sm" onclick="alert('Preset saved!')"><i class="fas fa-bookmark"></i> Save preset</button>`;
+  }
+}
+
+function toggleWizRole(id) {
+  const idx = wizardData.roles.indexOf(id);
+  if (idx >= 0) wizardData.roles.splice(idx, 1);
+  else wizardData.roles.push(id);
+  renderWizard();
+}
+
+function toggleWizTask(task) {
+  const idx = wizardData.tasks.indexOf(task);
+  if (idx >= 0) wizardData.tasks.splice(idx, 1);
+  else wizardData.tasks.push(task);
+  renderWizard();
+}
+
+function renderResults() {
   const grid = $('#results-grid');
   const count = $('#results-count');
   if (!grid) return;
-
   const results = getAllAssets();
   grid.innerHTML = results.map(a => renderAssetCard(a, true)).join('');
   if (count) count.textContent = `${results.length} assets found`;
 }
 
-function filterGallery() {
-  renderGallery();
+function updatePageUI() {
+  renderWizard();
 }
 
-function updatePageUI() {
-  renderGallery();
-}
+document.addEventListener('DOMContentLoaded', () => renderWizard());
 </script>
 </body>
 </html>

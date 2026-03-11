@@ -9,20 +9,13 @@
 </head>
 <body class="motif-theme-dark">
 
-<!-- Header -->
+<!-- Header (no workspace switcher) -->
 <header class="top-bar">
   <div class="top-bar-left">
-    <button class="notif-btn" style="display:none" id="hamburger-btn" onclick="document.querySelector('.left-nav').classList.toggle('mobile-open')"><i class="fas fa-bars"></i></button>
     <a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a>
-    <div class="divider-v"></div>
-    <div class="ws-switcher ws-private" onclick="toggleWorkspaceDropdown(event)">
-      <div class="ws-switcher-icon">P</div>
-      <div><div class="ws-switcher-label">My Private</div><div class="ws-switcher-meta">Free tier &bull; 200 runs/mo</div></div>
-      <span class="ws-switcher-arrow"><i class="fas fa-chevron-down"></i></span>
-    </div>
-    <div class="ws-dropdown hidden"></div>
   </div>
   <div class="top-bar-right">
+    <div class="role-chip-bar" id="role-indicator" style="cursor:default"><i class="fas fa-shield-alt"></i> Admin</div>
     <div class="role-chip-bar" onclick="openModal('role-edit-modal')">
       <span>You're set as <strong>Consultant</strong>, <strong>Consulting</strong></span>
       <i class="fas fa-pencil-alt"></i>
@@ -44,11 +37,10 @@
   <section class="hero">
     <div class="hero-inner">
       <h1>Find AI tools for your team's work.</h1>
-      <p>Discover agents, datasets, and roleplays tailored to EY methods—use them in a governed workspace tied to your engagement.</p>
+      <p>Discover agents, datasets, and roleplays tailored to EY methods&mdash;use them in a governed workspace tied to your engagement.</p>
 
       <!-- Inline Finder Wrapper -->
       <div class="finder-wrapper" style="margin-top:24px;max-width:780px">
-        <!-- Search Input -->
         <div class="search-input-wrap" id="finder-input-wrap">
           <i class="fas fa-search" style="color:var(--ey-gray-500)"></i>
           <input class="search-input" id="finder-input" placeholder="Describe your task (e.g., 'Draft a proposal for a retail client using last quarter's credentials')." maxlength="512" oninput="updateFinderCharCount()">
@@ -57,7 +49,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
           <div class="char-counter"><span id="finder-char-count">0</span>/512</div>
           <div style="position:relative">
-            <span class="search-helper" style="font-size:var(--font-size-10);color:var(--ey-gray-500);cursor:pointer;display:inline-flex;align-items:center;gap:4px" onclick="document.getElementById('rec-popover').classList.toggle('hidden')"><i class="fas fa-question-circle"></i> How recommendations work</span>
+            <span class="search-helper" onclick="document.getElementById('rec-popover').classList.toggle('hidden')"><i class="fas fa-question-circle"></i> How recommendations work</span>
             <div id="rec-popover" class="hidden" style="position:absolute;bottom:calc(100% + 8px);right:0;background:var(--modal-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:16px;width:320px;box-shadow:var(--shadow-xl);z-index:50">
               <ul style="list-style:none;padding:0">
                 <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-database" style="color:var(--ey-blue);margin-top:2px"></i> Searches across agents, roleplays, datasets, and MCP connectors.</li>
@@ -74,7 +66,7 @@
           <div class="mini-role-grid" id="mini-role-grid"></div>
         </div>
 
-        <!-- Task Chips (appear when role selected) -->
+        <!-- Task Chips -->
         <div id="finder-tasks-area" class="hidden" style="margin-top:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <div style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;letter-spacing:0.3px">Suggested tasks <span id="finder-role-label" style="color:var(--text-primary);text-transform:none"></span></div>
@@ -93,12 +85,7 @@
   <div class="page-container">
     <!-- Quick Actions -->
     <div class="section-block">
-      <div class="quick-actions">
-        <div class="qa-card" onclick="navigateTo('agent-studio.html')"><div class="qa-icon agent"><i class="fas fa-robot"></i></div><div class="qa-text"><h4>Create Agent</h4><p>Start from a blueprint or build custom</p></div></div>
-        <div class="qa-card" onclick="openWorkspaceModal()"><div class="qa-icon workspace"><i class="fas fa-layer-group"></i></div><div class="qa-text"><h4>Create Workspace</h4><p>Link your engagement code</p></div></div>
-        <div class="qa-card" onclick="alert('Roleplay creator opening...')"><div class="qa-icon roleplay"><i class="fas fa-comments"></i></div><div class="qa-text"><h4>Create Roleplay</h4><p>Scenario-based practice sessions</p></div></div>
-        <div class="qa-card" onclick="alert('Opening M365 Copilot chat...')"><div class="qa-icon copilot"><i class="fab fa-microsoft"></i></div><div class="qa-text"><h4>Open M365 Copilot</h4><p>For general questions</p></div></div>
-      </div>
+      <div class="quick-actions" id="quick-actions"></div>
     </div>
 
     <!-- Favorites Rail -->
@@ -111,7 +98,6 @@
 
     <div class="dashboard-grid">
       <div class="dashboard-main">
-
         <!-- Your Recent Workspaces -->
         <div class="section-block">
           <div class="section-header">
@@ -141,7 +127,7 @@
           <div class="card-row" id="trending-row"></div>
         </div>
 
-        <!-- Build (Agent Studio) -->
+        <!-- Build -->
         <div class="section-block">
           <div class="section-header">
             <div class="section-title"><div class="section-icon build"><i class="fas fa-flask"></i></div><div><h3>Build</h3><span class="text-xs text-muted">Agent Studio & blueprints</span></div></div>
@@ -153,23 +139,19 @@
             <div class="blueprint-card" onclick="navigateTo('agent-studio.html')"><i class="fas fa-check-double"></i><p>Approval Flow</p><span class="text-xs text-muted">Human-in-the-loop</span></div>
             <div class="blueprint-card" onclick="navigateTo('agent-studio.html')"><i class="fas fa-project-diagram"></i><p>Multi-Agent</p><span class="text-xs text-muted">Orchestrated pipeline</span></div>
           </div>
-          <div class="section-sub">Continue your agents</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md)"><div style="display:flex;align-items:center;gap:10px"><div class="asset-type-icon agent"><i class="fas fa-robot"></i></div><div><div style="font-weight:600;font-size:0.857rem">Client Intake Agent</div><div class="text-xs text-muted">Draft &bull; Last edited 2 days ago</div></div></div><button class="btn btn-sm btn-secondary" onclick="navigateTo('agent-studio.html')">Resume</button></div>
-          </div>
           <div class="section-sub" style="margin-top:16px">Publication Readiness</div>
           <div class="readiness-score">
             <div class="readiness-ring" style="background:conic-gradient(var(--ey-green) 0% 72%, var(--card-border) 72% 100%)"><span style="background:var(--card-bg);width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center">72%</span></div>
             <div class="readiness-items">
               <div class="readiness-item"><i class="fas fa-check-circle"></i> Security scan passed</div>
               <div class="readiness-item"><i class="fas fa-check-circle"></i> Metadata complete</div>
-              <div class="readiness-item"><i class="fas fa-exclamation-circle"></i> Evaluation coverage: 68% (target 80%)</div>
-              <div class="readiness-item"><i class="fas fa-times-circle"></i> Missing: output schema documentation</div>
+              <div class="readiness-item"><i class="fas fa-exclamation-circle"></i> Evaluation coverage: 68%</div>
+              <div class="readiness-item"><i class="fas fa-times-circle"></i> Missing: output schema docs</div>
             </div>
           </div>
         </div>
 
-        <!-- Control (Governance) -->
+        <!-- Control -->
         <div class="section-block">
           <div class="section-header">
             <div class="section-title"><div class="section-icon control"><i class="fas fa-shield-alt"></i></div><div><h3>Control</h3><span class="text-xs text-muted">Governance & budgets</span></div></div>
@@ -178,55 +160,37 @@
           <div id="control-section"></div>
         </div>
 
-        <!-- Extend (Connectors/MCP) -->
+        <!-- Extend -->
         <div class="section-block">
           <div class="section-header">
             <div class="section-title"><div class="section-icon extend"><i class="fas fa-plug"></i></div><div><h3>Extend</h3><span class="text-xs text-muted">Connectors & MCP</span></div></div>
-            <button class="btn btn-ghost btn-sm">View all <i class="fas fa-arrow-right"></i></button>
           </div>
-          <div class="section-sub">EY-approved connectors</div>
           <div class="card-row">
-            <div class="connector-card" onclick="navigateToAsset('sharepoint')"><div class="connector-icon"><i class="fab fa-microsoft"></i></div><div class="connector-info"><h4>SharePoint Connector</h4><p>Document retrieval &bull; EY Tenant</p></div><span class="chip chip-green">Active</span></div>
-            <div class="connector-card" onclick="navigateToAsset('outlook')"><div class="connector-icon"><i class="fas fa-envelope"></i></div><div class="connector-info"><h4>Outlook Connector</h4><p>Email summarization &bull; EY Tenant</p></div><span class="chip chip-green">Active</span></div>
-            <div class="connector-card"><div class="connector-icon" style="background:var(--chip-bg);color:var(--ey-gray-500)"><i class="fas fa-plus"></i></div><div class="connector-info"><h4>Request Connector</h4><p>Submit a new connector request</p></div></div>
+            <div class="connector-card" onclick="navigateToAsset('sharepoint')"><div class="connector-icon"><i class="fab fa-microsoft"></i></div><div class="connector-info"><h4>SharePoint Connector</h4><p>Document retrieval</p></div><span class="chip chip-green">Active</span></div>
+            <div class="connector-card" onclick="navigateToAsset('outlook')"><div class="connector-icon"><i class="fas fa-envelope"></i></div><div class="connector-info"><h4>Outlook Connector</h4><p>Email summarization</p></div><span class="chip chip-green">Active</span></div>
+            <div class="connector-card"><div class="connector-icon" style="background:var(--chip-bg);color:var(--ey-gray-500)"><i class="fas fa-plus"></i></div><div class="connector-info"><h4>Request Connector</h4><p>Submit a new request</p></div></div>
           </div>
-          <div class="section-sub">What's new</div>
-          <div style="padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md);font-size:0.857rem"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="chip chip-blue">New</span><strong>Teams Connector (EY Tenant)</strong></div><p class="text-xs text-muted">Meeting summaries and action items. Coming soon to approved workspaces.</p></div>
-        </div>
-
-        <!-- Continue Where You Left Off -->
-        <div class="section-block">
-          <div class="section-header">
-            <div class="section-title"><div class="section-icon history"><i class="fas fa-history"></i></div><div><h3>Continue where you left off</h3><span class="text-xs text-muted">Your recent activity</span></div></div>
-            <div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="alert('Pinned')"><i class="fas fa-thumbtack"></i></button><button class="btn btn-ghost btn-sm" onclick="alert('History cleared')">Clear</button></div>
-          </div>
-          <div id="continue-section"></div>
         </div>
       </div>
 
       <!-- Right Rail -->
       <aside class="right-rail">
+        <!-- Your Workspaces Quick List -->
         <div class="card">
-          <div class="card-header"><h3><i class="fas fa-tasks" style="margin-right:6px;color:var(--ey-blue)"></i> Approvals & To-dos</h3><a href="approvals.html" class="btn btn-ghost btn-sm">View all</a></div>
+          <div class="card-header"><h3><i class="fas fa-folder" style="margin-right:6px;color:var(--ey-blue)"></i> Your Workspaces</h3></div>
+          <div class="card-body" id="rail-workspaces"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-tasks" style="margin-right:6px;color:var(--ey-blue)"></i> Approvals</h3><a href="approvals.html" class="btn btn-ghost btn-sm">View all</a></div>
           <div class="card-body" id="rail-approvals"></div>
         </div>
         <div class="card">
-          <div class="card-header"><h3><i class="fas fa-chart-line" style="margin-right:6px;color:var(--ey-green)"></i> Budget & Spend</h3><a href="budgets.html" class="btn btn-ghost btn-sm">Details</a></div>
+          <div class="card-header"><h3><i class="fas fa-chart-line" style="margin-right:6px;color:var(--ey-green)"></i> Budget</h3><a href="budgets.html" class="btn btn-ghost btn-sm">Details</a></div>
           <div class="card-body" id="budget-widget"></div>
         </div>
         <div class="card" id="migration-banner">
           <div class="card-body" style="background:var(--badge-warning-bg);border-radius:var(--radius-md)">
-            <div style="display:flex;align-items:start;gap:10px"><i class="fas fa-exclamation-triangle" style="color:var(--ey-orange);margin-top:2px"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-orange)">Legacy Workspace Migration</div><p class="text-sm" style="margin-top:4px">Standard workspaces will require an engagement code by June 30, 2026. Free usage will end.</p><button class="btn btn-sm btn-secondary" style="margin-top:8px" onclick="openWorkspaceModal()">Add Engagement Code</button></div></div>
-          </div>
-        </div>
-        <div class="card" id="roi-widget">
-          <div class="card-header"><h3><i class="fas fa-tachometer-alt" style="margin-right:6px;color:var(--ey-purple)"></i> Manager ROI Overview</h3></div>
-          <div class="card-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-              <div class="stat-box" style="padding:8px"><div class="stat-value" style="font-size:1.14rem">142h</div><div class="stat-label">Time Saved</div></div>
-              <div class="stat-box" style="padding:8px"><div class="stat-value" style="font-size:1.14rem">$10.5k</div><div class="stat-label">Total Spend</div></div>
-            </div>
-            <div style="font-size:0.786rem;color:var(--ey-green);display:flex;align-items:center;gap:4px"><i class="fas fa-arrow-up"></i> 13.5x ROI (time saved vs spend)</div>
+            <div style="display:flex;align-items:start;gap:10px"><i class="fas fa-exclamation-triangle" style="color:var(--ey-orange);margin-top:2px"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-orange)">Legacy Workspace Migration</div><p class="text-sm" style="margin-top:4px">Standard workspaces will require an engagement code by June 30, 2026.</p><button class="btn btn-sm btn-secondary" style="margin-top:8px" onclick="openWorkspaceModal()">Add Engagement Code</button></div></div>
           </div>
         </div>
       </aside>
@@ -234,7 +198,7 @@
   </div>
 </main>
 
-<!-- Results Tray (bottom-docked drawer) -->
+<!-- Results Tray -->
 <div class="results-tray" id="results-tray">
   <div class="results-tray-header">
     <div><strong>Top Results</strong> <span class="text-sm text-muted" id="tray-count"></span></div>
@@ -245,7 +209,7 @@
   </div>
   <div class="results-tray-body">
     <div id="copilot-cta" class="hidden" style="padding:10px 14px;background:var(--badge-info-bg);border-radius:var(--radius-md);margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:0.857rem;color:var(--ey-blue)">
-      <i class="fab fa-microsoft"></i> This looks like a general question. <a href="#" onclick="event.preventDefault();alert('Opening M365 Copilot...')"><strong>Try M365 Copilot chat</strong></a> — we still found some relevant assets below.
+      <i class="fab fa-microsoft"></i> This looks like a general question. <a href="#" onclick="event.preventDefault();alert('Opening M365 Copilot...')"><strong>Try M365 Copilot chat</strong></a>
     </div>
     <div class="results-tray-cards" id="tray-results"></div>
   </div>
@@ -261,11 +225,6 @@
   </div>
 </div>
 
-<!-- Run Panel -->
-<div class="run-panel-overlay" id="run-panel" onclick="if(event.target===this)closeModal('run-panel')">
-  <div class="run-panel"><div class="run-panel-header"><h3>Run Asset</h3><button class="modal-close" onclick="closeModal('run-panel')">&times;</button></div><div class="run-panel-body" id="run-panel-body"></div><div class="run-panel-footer" id="run-panel-footer"></div></div>
-</div>
-
 <!-- Role-Task Profile Modal -->
 <div class="modal-overlay" id="role-edit-modal">
   <div class="modal" style="max-width:480px">
@@ -277,7 +236,7 @@
       <div class="form-group"><label>Service Line</label><select class="form-select" id="profile-sl">
         <option>Consulting</option><option>Fabric</option><option>Assurance</option><option>Tax</option><option>Strategy and Transactions</option><option>Internal Functions</option>
       </select></div>
-      <div class="form-group"><label>Top Tasks (select 3-5)</label><div class="wizard-chips" id="profile-tasks"></div><div class="form-help">These pre-seed Finder chips and personalize recommendations.</div></div>
+      <div class="form-group"><label>Top Tasks (select 3-5)</label><div class="wizard-chips" id="profile-tasks"></div></div>
     </div>
     <div class="modal-footer"><div></div><button class="btn btn-primary" onclick="saveProfile()">Save Profile</button></div>
   </div>
@@ -366,12 +325,10 @@ function toggleFinderTask(el, task) {
   el.classList.toggle('selected');
   updateFinderTaskCount();
 }
-
 function updateFinderTaskCount() {
-  const counter = $('#finder-task-count');
-  if (counter) counter.textContent = finderSelectedTasks.length > 0 ? `${finderSelectedTasks.length} task(s) selected` : 'Select tasks to refine results';
+  const c = $('#finder-task-count');
+  if (c) c.textContent = finderSelectedTasks.length > 0 ? `${finderSelectedTasks.length} task(s) selected` : 'Select tasks to refine results';
 }
-
 function updateFinderCharCount() {
   const input = $('#finder-input');
   const counter = $('#finder-char-count');
@@ -380,28 +337,46 @@ function updateFinderCharCount() {
 
 function submitFinderSearch() {
   const query = $('#finder-input')?.value.trim();
-  const hasRole = finderSelectedRole !== null;
-  const hasTasks = finderSelectedTasks.length > 0;
-  if (!query && !hasRole && !hasTasks) return;
-
+  if (!query && !finderSelectedRole && !finderSelectedTasks.length) return;
   const tray = $('#results-tray');
   const trayResults = $('#tray-results');
   const trayCount = $('#tray-count');
   const copilotCta = $('#copilot-cta');
-
   const isGeneric = query && (query.length < 20 || /what is|how do|explain|help me/i.test(query));
-  if (isGeneric && copilotCta) show(copilotCta);
-  else if (copilotCta) hide(copilotCta);
-
+  if (isGeneric && copilotCta) show(copilotCta); else if (copilotCta) hide(copilotCta);
   const results = getAllAssets().slice(0, 4);
   if (trayResults) trayResults.innerHTML = results.map(a => renderAssetCard(a, true)).join('');
   if (trayCount) trayCount.textContent = `(${getAllAssets().length} total)`;
   if (tray) tray.classList.add('open');
 }
+function closeResultsTray() { const t = $('#results-tray'); if (t) t.classList.remove('open'); }
 
-function closeResultsTray() {
-  const tray = $('#results-tray');
-  if (tray) tray.classList.remove('open');
+function renderQuickActions() {
+  const container = $('#quick-actions');
+  if (!container) return;
+  let html = '';
+  if (isAdmin()) {
+    html += `<div class="qa-card" onclick="openWorkspaceModal()"><div class="qa-icon workspace"><i class="fas fa-layer-group"></i></div><div class="qa-text"><h4>Create Workspace</h4><p>Link your engagement code</p></div></div>`;
+  }
+  html += `<div class="qa-card" onclick="navigateTo('finder.html')"><div class="qa-icon find"><i class="fas fa-search"></i></div><div class="qa-text"><h4>Find AI Tools</h4><p>Discover agents, datasets, roleplays</p></div></div>`;
+  html += `<div class="qa-card" onclick="navigateTo('agent-studio.html')"><div class="qa-icon agent"><i class="fas fa-robot"></i></div><div class="qa-text"><h4>Create Agent</h4><p>Start from a blueprint</p></div></div>`;
+  html += `<div class="qa-card" onclick="alert('Roleplay creator...')"><div class="qa-icon roleplay"><i class="fas fa-comments"></i></div><div class="qa-text"><h4>Create Roleplay</h4><p>Scenario-based practice</p></div></div>`;
+  html += `<div class="qa-card" onclick="alert('Opening M365 Copilot...')"><div class="qa-icon copilot"><i class="fab fa-microsoft"></i></div><div class="qa-text"><h4>Open M365 Copilot</h4><p>For general questions</p></div></div>`;
+  container.innerHTML = html;
+}
+
+function renderRailWorkspaces() {
+  const container = $('#rail-workspaces');
+  if (!container) return;
+  const wsList = [WORKSPACES.private, WORKSPACES.acme, WORKSPACES.globo, WORKSPACES.retail];
+  container.innerHTML = wsList.map(ws => {
+    const budgetHtml = ws.budget ? `<div style="width:60px;height:4px;background:var(--card-border);border-radius:2px;overflow:hidden"><div style="width:${ws.pct}%;height:100%;border-radius:2px;background:${ws.pct>75?'var(--ey-orange)':'var(--ey-green)'}"></div></div><span class="text-xs text-muted">${ws.pct}%</span>` : '';
+    return `<a href="workspace-home.html?ws=${ws.id}" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--card-border);text-decoration:none;color:inherit">
+      <div class="avatar" style="width:28px;height:28px;background:${ws.type==='private'?'var(--ey-gray-500)':ws.status==='approved'?'var(--ey-green)':'var(--ey-orange)'};color:#1A1A24;font-size:10px;flex-shrink:0">${ws.icon}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:0.857rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ws.name}</div><div class="text-xs text-muted">${ws.engCode || 'Free tier'}</div></div>
+      <div style="display:flex;align-items:center;gap:4px">${budgetHtml}</div>
+    </a>`;
+  }).join('');
 }
 
 function renderFavoritesRail() {
@@ -418,8 +393,7 @@ function renderFavoritesRail() {
       </div>
       <div style="font-weight:600;font-size:0.857rem;margin-bottom:4px">${a.name}</div>
       <div style="display:flex;gap:4px">
-        <button class="btn btn-primary btn-sm" style="font-size:9px;padding:2px 8px" onclick="event.stopPropagation();handleRun('${a.id}')">Run</button>
-        <button class="btn btn-secondary btn-sm" style="font-size:9px;padding:2px 8px" onclick="event.stopPropagation();handleAddToWorkspace('${a.id}')">Add</button>
+        ${pricingBadge(a.pricing, a.cost)}
       </div>
     </div>`).join('');
 }
@@ -434,10 +408,9 @@ function renderWorkspaceTiles() {
   container.innerHTML = wsList.map(ws => {
     const rolePill = ws.role ? `<span class="chip chip-${ws.role==='Admin'?'blue':ws.role==='Editor'?'green':'default'}">${ws.role}</span>` : '';
     const avatars = (ws.participants||[]).slice(0,3).map(p => `<div class="avatar" title="${p.n}">${p.i}</div>`).join('');
-    const extraCount = (ws.participants||[]).length > 3 ? `<div class="avatar" style="background:var(--chip-bg);color:var(--ey-gray-500);font-size:8px">+${ws.participants.length - 3}</div>` : '';
-    const agentChips = (ws.agents||[]).slice(0,3).map(a => `<span class="chip chip-default" style="font-size:9px">${a}</span>`).join('');
+    const agentChips = (ws.agents||[]).slice(0,2).map(a => `<span class="chip chip-default" style="font-size:9px">${a}</span>`).join('');
     const budgetBar = ws.budget ? `<div class="ws-tile-budget"><div class="progress-bar" style="height:4px"><div class="progress-fill ${ws.pct > 75 ? 'orange' : 'green'}" style="width:${ws.pct}%"></div></div><div class="text-xs text-muted" style="margin-top:2px">${ws.pct}% of $${(ws.budget/1000).toFixed(0)}k</div></div>` : '';
-    return `<div class="ws-tile" onclick="switchWorkspace('${ws.id}')">
+    return `<div class="ws-tile" onclick="window.location.href='workspace-home.html?ws=${ws.id}'">
       <div class="ws-tile-header"><div class="ws-tile-name">${ws.name}</div>${rolePill}</div>
       <div class="ws-tile-desc">${ws.desc || ''}</div>
       <div class="ws-tile-meta">
@@ -445,7 +418,7 @@ function renderWorkspaceTiles() {
         <span class="text-xs text-muted"><i class="fas fa-clock"></i> ${ws.lastActivity || 'N/A'}</span>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <div class="ws-tile-avatars">${avatars}${extraCount}</div>
+        <div class="ws-tile-avatars">${avatars}</div>
         <div class="ws-tile-agents">${agentChips}</div>
       </div>
       ${budgetBar}
@@ -456,69 +429,29 @@ function renderWorkspaceTiles() {
 function renderControlSection() {
   const container = $('#control-section');
   if (!container) return;
-  const wsList = [WORKSPACES.acme, WORKSPACES.globo];
   container.innerHTML = `
-    <div class="section-sub">Your workspaces and budgets</div>
-    ${wsList.map(ws => `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md);margin-bottom:6px">
-      <div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:28px;height:28px;background:var(--ey-green);color:#1A1A24;font-size:10px">${ws.icon}</div><div><div style="font-weight:600;font-size:0.857rem">${ws.name}</div><div class="text-xs text-muted">${ws.engCode}</div></div></div>
-      <div style="display:flex;align-items:center;gap:12px"><div style="width:80px"><div class="progress-bar" style="height:6px"><div class="progress-fill ${ws.pct>75?'orange':'green'}" style="width:${ws.pct}%"></div></div><div class="text-xs text-muted">${ws.pct}%</div></div><span class="chip chip-green">Approved</span></div>
-    </div>`).join('')}
-    <div class="section-sub">Policy alerts</div>
     <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--badge-warning-bg);border-radius:var(--radius-md);font-size:0.857rem;color:var(--ey-orange);margin-bottom:6px"><i class="fas fa-exclamation-triangle"></i> GloboCo Finance Controls: 67% budget used. Approaching soft cap (75%).</div>
-    <div class="section-sub">Pending approvals</div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md)"><div style="display:flex;align-items:center;gap:10px"><div class="approval-icon access"><i class="fas fa-key"></i></div><div><div style="font-weight:600;font-size:0.857rem">5 pending approvals</div><div class="text-xs text-muted">2 workspace, 1 dataset, 1 publication, 1 budget</div></div></div><a href="approvals.html" class="btn btn-sm btn-secondary">Review <i class="fas fa-arrow-right"></i></a></div>`;
-}
-
-function renderContinueSection() {
-  const container = $('#continue-section');
-  if (!container) return;
-  const items = [
-    { icon: 'fa-robot', cls: 'agent', name: 'RFP Draft Agent', meta: 'Completed \u2022 3 hours ago \u2022 ACME Retail RFP Team', actions: 'rerun', id: 'rfp-draft', locked: false },
-    { icon: 'fa-comments', cls: 'roleplay', name: 'Client Pitch Roleplay', meta: 'Completed \u2022 Yesterday \u2022 My Private', actions: 'rerun', id: 'client-pitch', locked: false },
-    { icon: 'fa-comments', cls: 'roleplay', name: 'Controls Walkthrough Roleplay', meta: 'Pending \u2022 Due Mar 14 \u2022 Assigned by Jane Patel', actions: 'start', id: 'controls-walkthrough', locked: isPendingWorkspace() },
-    { icon: 'fa-clock', cls: 'access', name: 'Dataset access: EY Credentials Repository', meta: 'Pending approval \u2022 Submitted 1 day ago', actions: 'status', locked: false }
-  ];
-  container.innerHTML = items.map(item => {
-    const lockIcon = item.locked ? '<i class="fas fa-lock" style="color:var(--ey-orange);margin-right:4px" title="Workspace pending approval"></i>' : '';
-    let actionHtml = '';
-    if (item.actions === 'rerun') actionHtml = `<button class="btn btn-sm btn-secondary" onclick="handleRun('${item.id}')">Re-run</button><button class="btn btn-sm btn-ghost">Save as Recipe</button>`;
-    else if (item.actions === 'start') actionHtml = `<button class="btn btn-sm btn-primary" ${item.locked?'disabled':''} onclick="handleRun('${item.id}')">${lockIcon}Start</button>`;
-    else actionHtml = '<span class="chip chip-orange">Pending</span>';
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md);margin-bottom:6px">
-      <div style="display:flex;align-items:center;gap:10px"><div class="asset-type-icon ${item.cls}"><i class="fas ${item.icon}"></i></div><div><div style="font-weight:600;font-size:0.857rem">${item.name}</div><div class="text-xs text-muted">${item.meta}</div></div></div>
-      <div style="display:flex;gap:6px">${actionHtml}</div>
-    </div>`;
-  }).join('');
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--chip-bg);border-radius:var(--radius-md);margin-top:8px"><div style="display:flex;align-items:center;gap:10px"><div class="approval-icon access"><i class="fas fa-key"></i></div><div><div style="font-weight:600;font-size:0.857rem">5 pending approvals</div><div class="text-xs text-muted">2 workspace, 1 dataset, 1 asset add, 1 budget</div></div></div><a href="approvals.html" class="btn btn-sm btn-secondary">Review <i class="fas fa-arrow-right"></i></a></div>`;
 }
 
 function renderRailApprovals() {
   const container = $('#rail-approvals');
   if (!container) return;
   container.innerHTML = `
-    <div style="display:flex;align-items:start;gap:10px;padding:10px 0;border-bottom:1px solid var(--card-border)">
+    <div style="display:flex;align-items:start;gap:10px;padding:8px 0;border-bottom:1px solid var(--card-border)">
       <div class="approval-icon access"><i class="fas fa-key"></i></div>
-      <div style="flex:1"><p style="font-size:0.857rem"><strong>Sarah Kim</strong> requests access to ACME workspace</p><div class="text-xs text-muted">2 hours ago</div><div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-sm btn-primary" onclick="alert('Approved')">Approve</button><button class="btn btn-sm btn-secondary" onclick="alert('Denied')">Deny</button></div></div>
+      <div style="flex:1"><p style="font-size:0.857rem"><strong>Sarah Kim</strong> requests workspace access</p><div class="text-xs text-muted">2h ago</div><div style="display:flex;gap:4px;margin-top:4px"><button class="btn btn-sm btn-primary" onclick="alert('Approved')">Approve</button><button class="btn btn-sm btn-secondary" onclick="alert('Denied')">Deny</button></div></div>
     </div>
-    <div style="display:flex;align-items:start;gap:10px;padding:10px 0;border-bottom:1px solid var(--card-border)">
-      <div class="approval-icon dataset"><i class="fas fa-database"></i></div>
-      <div style="flex:1"><p style="font-size:0.857rem"><strong>Dataset approval</strong>: Credentials Repo for Controls team</p><div class="text-xs text-muted">1 day ago</div><div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-sm btn-primary" onclick="alert('Approved')">Approve</button><button class="btn btn-sm btn-secondary" onclick="alert('Denied')">Deny</button></div></div>
-    </div>
-    <div style="display:flex;align-items:start;gap:10px;padding:10px 0">
-      <div class="approval-icon budget"><i class="fas fa-dollar-sign"></i></div>
-      <div style="flex:1"><p style="font-size:0.857rem"><strong>Budget override</strong>: GloboCo approaching hard cap</p><div class="text-xs text-muted">3 hours ago</div><div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-sm btn-primary" onclick="alert('Override approved')">Override</button><button class="btn btn-sm btn-secondary" onclick="alert('Dismissed')">Dismiss</button></div></div>
+    <div style="display:flex;align-items:start;gap:10px;padding:8px 0">
+      <div class="approval-icon" style="background:var(--badge-success-bg);color:var(--ey-green)"><i class="fas fa-plus"></i></div>
+      <div style="flex:1"><p style="font-size:0.857rem"><strong>David Brown</strong> requests asset addition</p><div class="text-xs text-muted">1d ago &bull; RFP Draft Agent → GloboCo</div></div>
     </div>`;
 }
 
 function renderBudgetWidget() {
   const widget = $('#budget-widget');
   if (!widget) return;
-  if (STATE.workspace === 'private') {
-    widget.innerHTML = `<div><div style="display:flex;justify-content:space-between;font-size:0.857rem;margin-bottom:6px"><span style="font-weight:600">My Private Usage</span><span>127 / 200 runs</span></div><div class="progress-bar"><div class="progress-fill green" style="width:63.5%"></div></div><div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--chip-bg);border-radius:var(--radius-sm);margin-top:8px;font-size:0.857rem;color:var(--ey-gray-600)"><i class="fas fa-chart-line" style="color:var(--ey-blue)"></i> ~32 runs projected next 7 days</div></div>`;
-  } else if (STATE.workspace === 'approved') {
-    widget.innerHTML = `<div><div style="display:flex;justify-content:space-between;font-size:0.857rem;margin-bottom:6px"><span style="font-weight:600">ACME Retail RFP Team</span><span>$10,500 / $25,000</span></div><div class="progress-bar"><div class="progress-fill green" style="width:42%"></div></div><div class="progress-markers"><span class="progress-marker" style="left:75%">75%</span><span class="progress-marker" style="left:100%">100%</span></div><div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--chip-bg);border-radius:var(--radius-sm);margin-top:12px;font-size:0.857rem;color:var(--ey-gray-600)"><i class="fas fa-chart-line" style="color:var(--ey-blue)"></i> $2,100 forecast next 7 days</div></div>`;
-  } else {
-    widget.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--badge-warning-bg);border-radius:var(--radius-md)"><i class="fas fa-clock" style="color:var(--ey-orange)"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-orange)">Workspace pending</div><p class="text-xs">Budget tracking begins after approval.</p></div></div>`;
-  }
+  widget.innerHTML = `<div><div style="display:flex;justify-content:space-between;font-size:0.857rem;margin-bottom:6px"><span style="font-weight:600">ACME Retail RFP Team</span><span>$10.5k / $25k</span></div><div class="progress-bar"><div class="progress-fill green" style="width:42%"></div></div><div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--chip-bg);border-radius:var(--radius-sm);margin-top:8px;font-size:0.857rem;color:var(--ey-gray-600)"><i class="fas fa-chart-line" style="color:var(--ey-blue)"></i> $2.1k forecast next 7 days</div></div>`;
 }
 
 function updateProfileTasks() {
@@ -527,33 +460,28 @@ function updateProfileTasks() {
   const container = $('#profile-tasks');
   if (container) container.innerHTML = tasks.map((t, i) => `<span class="wizard-chip ${i < 3 ? 'selected' : ''}" onclick="this.classList.toggle('selected')">${t}</span>`).join('');
 }
-
 function saveProfile() {
   const role = $('#profile-role')?.value;
   const sl = $('#profile-sl')?.value;
   if (role) STATE.currentUser.role = role;
   if (sl) STATE.currentUser.serviceLine = sl;
-  const selected = $$('#profile-tasks .wizard-chip.selected').map(c => c.textContent);
-  STATE.currentUser.tasks = selected;
-  $('.role-chip-bar span').innerHTML = `You're set as <strong>${role}</strong>, <strong>${sl}</strong>`;
   closeModal('role-edit-modal');
   updatePageUI();
 }
 
 function updatePageUI() {
   renderMiniRoleGrid();
+  renderQuickActions();
+  renderRailWorkspaces();
   renderFavoritesRail();
   renderWorkspaceTiles();
   renderControlSection();
-  renderContinueSection();
   renderRailApprovals();
   renderBudgetWidget();
   updateProfileTasks();
-
   const recommended = [...ASSETS.agents.slice(0, 2), ...ASSETS.roleplays.slice(0, 1)];
   const newAssets = getAllAssets().filter(a => a.isNew);
-  const trending = [...ASSETS.agents.slice(0, 2), ...ASSETS.roleplays.slice(0, 1), ...ASSETS.mcp.slice(0, 1)];
-
+  const trending = [...ASSETS.agents.slice(0, 2), ...ASSETS.mcp.slice(0, 1)];
   const recRow = $('#recommended-row');
   const newRow = $('#new-row');
   const trendRow = $('#trending-row');
@@ -563,19 +491,9 @@ function updatePageUI() {
 }
 
 // Toast
-function showEYQToast() {
-  const toast = $('#eyq-toast');
-  if (!toast) return;
-  setTimeout(() => toast.classList.add('open'), 800);
-}
-function dismissToast() {
-  const toast = $('#eyq-toast');
-  if (toast) toast.classList.remove('open');
-  localStorage.setItem('eyq-toast-dismissed', 'true');
-}
-if (!localStorage.getItem('eyq-toast-dismissed')) {
-  document.addEventListener('DOMContentLoaded', showEYQToast);
-}
+function showEYQToast() { const t = $('#eyq-toast'); if (t) setTimeout(() => t.classList.add('open'), 800); }
+function dismissToast() { const t = $('#eyq-toast'); if (t) t.classList.remove('open'); localStorage.setItem('eyq-toast-dismissed', 'true'); }
+if (!localStorage.getItem('eyq-toast-dismissed')) document.addEventListener('DOMContentLoaded', showEYQToast);
 </script>
 
 <!-- EYQ Announcement Toast -->
@@ -583,7 +501,7 @@ if (!localStorage.getItem('eyq-toast-dismissed')) {
   <div class="toast-icon" style="background:var(--badge-info-bg);color:var(--ey-blue)"><i class="fas fa-bullhorn"></i></div>
   <div class="toast-body">
     <div class="toast-title">EYQ is your new home for AI assets</div>
-    <div class="toast-message">Starting June 2026, <strong>EYQ</strong> will be the single platform for discovering and running AI agents, roleplays, datasets, and connectors at EY. Use EYQ for productivity tools tied to your engagements.<br><br>For general questions (drafting emails, brainstorming, summarizing), continue using <strong>M365 Copilot</strong>.</div>
+    <div class="toast-message">Starting June 2026, <strong>EYQ</strong> is the single platform for AI agents, roleplays, datasets, and connectors. For general questions, continue using <strong>M365 Copilot</strong>.</div>
     <div class="toast-actions">
       <button class="btn btn-primary btn-sm" onclick="dismissToast()">Got it</button>
       <a href="#" class="btn btn-ghost btn-sm" onclick="event.preventDefault();dismissToast()">Don't show again</a>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EYQ — Workspace Home</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="motif-theme-dark">
+
+<header class="top-bar">
+  <div class="top-bar-left"><a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a></div>
+  <div class="top-bar-right">
+    <span id="role-indicator" class="role-chip-bar" style="cursor:default"><i class="fas fa-shield-alt"></i> Admin</span>
+    <button class="notif-btn" id="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-sun"></i></button>
+    <a href="approvals.html" class="notif-btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></a>
+    <div class="avatar">AM</div>
+  </div>
+</header>
+<nav class="left-nav" role="navigation"></nav>
+
+<main class="app-content">
+  <div id="banner-area"></div>
+
+  <!-- Workspace Header -->
+  <div class="ws-home-header" id="ws-header"></div>
+
+  <!-- Tabs -->
+  <div style="padding:0 24px;background:var(--card-bg);border-bottom:1px solid var(--card-border)">
+    <div class="tabs" style="max-width:1400px;margin:0 auto">
+      <button class="tab active" onclick="switchWsTab(this,'assets')"><i class="fas fa-th"></i> Assets</button>
+      <button class="tab" onclick="switchWsTab(this,'people')"><i class="fas fa-users"></i> People</button>
+      <button class="tab" onclick="switchWsTab(this,'metrics')"><i class="fas fa-chart-bar"></i> Consumption Metrics</button>
+      <button class="tab" onclick="switchWsTab(this,'governance')"><i class="fas fa-shield-alt"></i> Governance</button>
+    </div>
+  </div>
+
+  <div class="page-container">
+    <!-- Assets Tab -->
+    <div class="tab-content active" id="tab-assets">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="text-sm text-muted" id="asset-count"></div>
+        <div style="display:flex;gap:8px" id="asset-actions"></div>
+      </div>
+      <div class="ws-asset-grid" id="ws-assets-grid"></div>
+    </div>
+
+    <!-- People Tab -->
+    <div class="tab-content" id="tab-people">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3>Members</h3>
+        <div id="invite-btn-area"></div>
+      </div>
+      <div id="people-list"></div>
+    </div>
+
+    <!-- Metrics Tab -->
+    <div class="tab-content" id="tab-metrics">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-value" style="color:var(--ey-blue)">247</div><div class="stat-label">Total Runs</div></div>
+        <div class="stat-box"><div class="stat-value" style="color:var(--ey-green)">89h</div><div class="stat-label">Time Saved</div></div>
+        <div class="stat-box"><div class="stat-value" style="color:var(--ey-orange)">$10,500</div><div class="stat-label">Total Spend</div></div>
+        <div class="stat-box"><div class="stat-value" style="color:var(--ey-purple)">8.5x</div><div class="stat-label">ROI</div></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><h3>Runs by Asset</h3></div>
+        <div class="card-body">
+          <div class="chart-bars" style="height:120px">
+            <div class="chart-bar" style="height:90%"><div class="chart-bar-value">112</div><div class="chart-bar-label">RFP Draft</div></div>
+            <div class="chart-bar" style="height:55%"><div class="chart-bar-value">68</div><div class="chart-bar-label">Policy Q&A</div></div>
+            <div class="chart-bar" style="height:35%"><div class="chart-bar-value">43</div><div class="chart-bar-label">Controls</div></div>
+            <div class="chart-bar" style="height:20%"><div class="chart-bar-value">24</div><div class="chart-bar-label">Pitch RP</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Top Users</h3></div>
+        <div class="card-body">
+          <table class="data-table">
+            <thead><tr><th>User</th><th>Runs</th><th>Spend</th><th>Time Saved</th></tr></thead>
+            <tbody>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:24px;height:24px;font-size:9px">JP</div> Jane Patel</div></td><td>89</td><td>$3,800</td><td>34h</td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:24px;height:24px;font-size:9px">AM</div> Alex Morgan</div></td><td>72</td><td>$3,200</td><td>28h</td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:24px;height:24px;font-size:9px">SK</div> Sarah Kim</div></td><td>56</td><td>$2,400</td><td>18h</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Governance Tab -->
+    <div class="tab-content" id="tab-governance">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card"><div class="card-header"><h3>Datasets Connected</h3></div><div class="card-body">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--card-border)"><div class="asset-type-icon dataset"><i class="fas fa-database"></i></div><div style="flex:1"><div style="font-weight:600;font-size:0.857rem">EY Credentials Repository</div><div class="text-xs text-muted">Medium Risk &bull; RLS enabled</div></div><span class="chip chip-green">Approved</span></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0"><div class="asset-type-icon dataset"><i class="fas fa-database"></i></div><div style="flex:1"><div style="font-weight:600;font-size:0.857rem">Policy & Methodology Library</div><div class="text-xs text-muted">Low Risk</div></div><span class="chip chip-green">Approved</span></div>
+        </div></div>
+        <div class="card"><div class="card-header"><h3>Export Policy</h3></div><div class="card-body">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0"><i class="fas fa-check-circle" style="color:var(--ey-green)"></i> EY SharePoint &mdash; Allowed</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0"><i class="fas fa-times-circle" style="color:var(--ey-red)"></i> External email &mdash; Blocked</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0"><i class="fas fa-times-circle" style="color:var(--ey-red)"></i> Third-party storage &mdash; Blocked</div>
+        </div></div>
+      </div>
+      <div class="card"><div class="card-header"><h3>Incidents & Violations</h3></div><div class="card-body"><p class="text-sm text-muted">No incidents reported for this workspace.</p></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-header"><h3>Pending Approvals</h3></div><div class="card-body">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0"><div class="approval-icon dataset"><i class="fas fa-database"></i></div><div style="flex:1"><div style="font-weight:600;font-size:0.857rem">Dataset access: Client Financials</div><div class="text-xs text-muted">Requested 2 days ago &bull; Steward review</div></div><span class="chip chip-orange">Pending</span></div>
+      </div></div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="ws-create-modal"><div class="modal"><div class="modal-header"><h2>Create Team Workspace</h2><button class="modal-close" onclick="closeModal('ws-create-modal')">&times;</button></div><div class="stepper"><div class="step active"><span class="step-num">1</span> Basics</div><div class="step-connector"></div><div class="step"><span class="step-num">2</span> Engagement Code</div><div class="step-connector"></div><div class="step"><span class="step-num">3</span> Members & Assets</div><div class="step-connector"></div><div class="step"><span class="step-num">4</span> Budgets & Policies</div></div><div class="modal-body" id="ws-create-body"></div><div class="modal-footer" id="ws-create-footer"></div></div></div>
+
+<div class="state-switcher"><div class="state-switcher-header" onclick="toggleStateSwitcher()"><span><i class="fas fa-sliders-h"></i> Prototype States</span><i class="fas fa-chevron-up"></i></div><div class="state-switcher-body"></div></div>
+
+<script src="app.js"></script>
+<script>
+function getWsParam() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ws') || 'acme';
+}
+
+function getCurrentWs() {
+  return WORKSPACES[getWsParam()] || WORKSPACES.acme;
+}
+
+function getWsAssets() {
+  const wsId = getWsParam();
+  if (wsId === 'private') return getAllAssets().filter(a => a.pricing === 'free');
+  return getAllAssets().filter(a => {
+    if (wsId === 'acme') return ['rfp-draft','policy-qa','controls-packager','client-pitch','sharepoint'].includes(a.id);
+    if (wsId === 'globo') return ['controls-packager','controls-walkthrough','policy-qa','credentials-repo'].includes(a.id);
+    return ['client-pitch','policy-qa'].includes(a.id);
+  });
+}
+
+function switchWsTab(btn, tabId) {
+  $$('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  $$('.tab-content').forEach(t => t.classList.remove('active'));
+  $(`#tab-${tabId}`).classList.add('active');
+}
+
+function renderWsHeader() {
+  const ws = getCurrentWs();
+  const container = $('#ws-header');
+  if (!container) return;
+  const isPending = ws.status === 'pending';
+  const budgetHtml = ws.budget ? `<div style="width:200px"><div style="display:flex;justify-content:space-between;font-size:0.786rem;margin-bottom:4px"><span>Budget</span><span>$${(ws.used||0).toLocaleString()} / $${ws.budget.toLocaleString()}</span></div><div class="progress-bar" style="height:6px"><div class="progress-fill ${(ws.pct||0)>75?'orange':'green'}" style="width:${ws.pct||0}%"></div></div></div>` : '';
+  container.innerHTML = `
+    <div class="ws-home-info">
+      <div class="ws-home-icon" style="background:${isPending?'var(--ey-orange)':ws.type==='private'?'var(--ey-gray-500)':'var(--ey-green)'};color:#1A1A24">${ws.icon}</div>
+      <div>
+        <h1 style="font-size:1.5rem">${ws.name}</h1>
+        <div class="ws-home-meta">
+          ${ws.engCode ? `<span class="chip chip-blue">${ws.engCode}</span>` : '<span class="chip chip-default">Free tier</span>'}
+          ${ws.region ? `<span class="chip chip-default">${ws.region}</span>` : ''}
+          ${ws.riskTier ? `<span class="chip chip-${ws.riskTier==='Low'?'green':ws.riskTier==='Medium'?'orange':'red'}">${ws.riskTier} Risk</span>` : ''}
+          ${isPending ? '<span class="chip chip-orange"><i class="fas fa-clock"></i> Pending Approval</span>' : ''}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      ${budgetHtml}
+      <div class="ws-home-actions" id="ws-quick-actions"></div>
+    </div>`;
+  renderWsQuickActions();
+}
+
+function renderWsQuickActions() {
+  const container = $('#ws-quick-actions');
+  if (!container) return;
+  let html = '';
+  if (isAdmin()) {
+    html += `<button class="btn btn-primary btn-sm" onclick="navigateTo('finder.html')"><i class="fas fa-plus"></i> Add assets</button>`;
+    html += `<button class="btn btn-secondary btn-sm" onclick="alert('Invite dialog...')"><i class="fas fa-user-plus"></i> Invite</button>`;
+    html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('budgets.html')"><i class="fas fa-chart-bar"></i> Budgets</button>`;
+  }
+  container.innerHTML = html;
+}
+
+function renderWsAssets() {
+  const grid = $('#ws-assets-grid');
+  const count = $('#asset-count');
+  const actions = $('#asset-actions');
+  if (!grid) return;
+  const assets = getWsAssets();
+  const ws = getCurrentWs();
+  const isPending = ws.status === 'pending';
+
+  if (count) count.textContent = `${assets.length} assets in this workspace`;
+  if (actions && isAdmin()) actions.innerHTML = `<button class="btn btn-primary btn-sm" onclick="navigateTo('finder.html')"><i class="fas fa-plus"></i> Add assets</button>`;
+
+  grid.innerHTML = assets.map(a => {
+    const isPaid = a.pricing !== 'free';
+    const locked = isPending && isPaid;
+    const openUrl = a.type === 'Agent' ? `agent-chat.html?ws=${getWsParam()}&asset=${a.id}` : `asset-detail.html?id=${a.id}`;
+    return `<div class="ws-asset-card">
+      ${locked ? '<div class="locked-badge"><i class="fas fa-lock"></i> Locked until approval</div>' : ''}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="asset-type-icon ${typeClass(a.type)}"><i class="fas ${typeIcon(a.type)}"></i></div>
+        <div><div style="font-weight:600;font-size:0.857rem">${a.name}</div><div class="text-xs text-muted">${a.type} &bull; ${a.risk} Risk</div></div>
+      </div>
+      <div class="text-sm text-muted" style="margin-bottom:8px">${a.desc}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${pricingBadge(a.pricing, a.cost)} ${a.template ? `<span class="chip chip-default">${a.template}</span>` : ''}</div>
+      <div class="ws-asset-actions">
+        <a href="${openUrl}" class="btn btn-primary btn-sm ${locked?'disabled':''}" ${locked?'onclick="event.preventDefault()"':''}><i class="fas fa-external-link-alt"></i> Open</a>
+        ${isAdmin() ? `<button class="btn btn-secondary btn-sm" onclick="alert('Asset removed from workspace')"><i class="fas fa-trash"></i> Remove</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPeople() {
+  const list = $('#people-list');
+  const inviteArea = $('#invite-btn-area');
+  if (!list) return;
+  const ws = getCurrentWs();
+  if (inviteArea && isAdmin()) inviteArea.innerHTML = `<button class="btn btn-primary btn-sm" onclick="alert('Invite members...')"><i class="fas fa-user-plus"></i> Invite</button>`;
+
+  const members = [
+    { initials: 'AM', name: 'Alex Morgan', role: 'Admin', email: 'alex.morgan@ey.com' },
+    { initials: 'JP', name: 'Jane Patel', role: 'Admin', email: 'jane.patel@ey.com' },
+    { initials: 'SK', name: 'Sarah Kim', role: 'Editor', email: 'sarah.kim@ey.com' },
+    { initials: 'RP', name: 'Raj Patel', role: 'Reader', email: 'raj.patel@ey.com' }
+  ];
+  list.innerHTML = `<table class="data-table"><thead><tr><th>Member</th><th>Role</th><th>Email</th>${isAdmin()?'<th>Actions</th>':''}</tr></thead><tbody>
+    ${members.map(m => `<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px">${m.initials}</div> ${m.name}</div></td><td><span class="chip chip-${m.role==='Admin'?'blue':m.role==='Editor'?'green':'default'}">${m.role}</span></td><td class="text-muted">${m.email}</td>${isAdmin()?`<td><button class="btn btn-ghost btn-sm" onclick="alert('Role changed')">Change role</button><button class="btn btn-ghost btn-sm" style="color:var(--ey-red)" onclick="alert('Member removed')">Remove</button></td>`:''}</tr>`).join('')}
+  </tbody></table>`;
+}
+
+function updatePageUI() {
+  renderWsHeader();
+  renderWsAssets();
+  renderPeople();
+}
+</script>
+</body>
+</html>

@@ -3,6 +3,7 @@
    ======================================================================== */
 
 const STATE = {
+  role: 'admin',           // 'admin' or 'contributor'
   workspace: 'private',
   tenantPolicy: 'selfserve',
   pricingState: 'estimated',
@@ -21,9 +22,9 @@ const STATE = {
 
 const WORKSPACES = {
   private: { id: 'private', name: 'My Private', type: 'private', status: 'active', icon: 'P', budget: null, caps: '200 runs/month', engCode: null, desc: 'Personal sandbox for free assets', region: 'US', riskTier: 'Low' },
-  acme: { id: 'acme', name: 'ACME Retail RFP Team', type: 'team', status: 'approved', icon: 'A', engCode: 'ENG-ACME-2026-001', owner: 'Jane Patel', budget: 25000, used: 10500, pct: 42, region: 'EU', desc: 'Q2 retail proposal development', lastActivity: '2h ago', participants: [{i:'JP',n:'Jane Patel'},{i:'SK',n:'Sarah Kim'},{i:'RP',n:'Raj Patel'}], agents: ['RFP Draft Agent','Policy Q&A Agent','Controls Packager'], role: 'Admin' },
-  globo: { id: 'globo', name: 'GloboCo Finance Controls', type: 'team', status: 'approved', icon: 'G', engCode: 'ENG-GLOBO-2026-014', owner: 'Miguel Santos', budget: 40000, used: 26800, pct: 67, region: 'US', desc: 'Finance controls walkthrough engagement', lastActivity: '5h ago', participants: [{i:'MS',n:'Miguel Santos'},{i:'DB',n:'David Brown'},{i:'MG',n:'Maria Garcia'}], agents: ['Controls Evidence Packager','Controls Roleplay'], role: 'Editor' },
-  retail: { id: 'retail', name: 'Retail Q2 Pitch', type: 'team', status: 'pending', icon: 'R', engCode: 'ENG-RETAIL-2026-009', owner: 'Lin Wei', budget: 15000, used: 0, pct: 0, region: 'APAC', desc: 'Retail pitch preparation workspace', lastActivity: '1d ago', participants: [{i:'LW',n:'Lin Wei'}], agents: ['Client Pitch Roleplay'], role: 'Editor' }
+  acme: { id: 'acme', name: 'ACME Retail RFP Team', type: 'team', status: 'approved', icon: 'A', engCode: 'ENG-ACME-2026-001', owner: 'Jane Patel', budget: 25000, used: 10500, pct: 42, region: 'EU', desc: 'Q2 retail proposal development', lastActivity: '2h ago', participants: [{i:'JP',n:'Jane Patel'},{i:'SK',n:'Sarah Kim'},{i:'RP',n:'Raj Patel'}], agents: ['RFP Draft Agent','Policy Q&A Agent','Controls Packager'], role: 'Admin', riskTier: 'Medium' },
+  globo: { id: 'globo', name: 'GloboCo Finance Controls', type: 'team', status: 'approved', icon: 'G', engCode: 'ENG-GLOBO-2026-014', owner: 'Miguel Santos', budget: 40000, used: 26800, pct: 67, region: 'US', desc: 'Finance controls walkthrough engagement', lastActivity: '5h ago', participants: [{i:'MS',n:'Miguel Santos'},{i:'DB',n:'David Brown'},{i:'MG',n:'Maria Garcia'}], agents: ['Controls Evidence Packager','Controls Roleplay'], role: 'Editor', riskTier: 'High' },
+  retail: { id: 'retail', name: 'Retail Q2 Pitch', type: 'team', status: 'pending', icon: 'R', engCode: 'ENG-RETAIL-2026-009', owner: 'Lin Wei', budget: 15000, used: 0, pct: 0, region: 'APAC', desc: 'Retail pitch preparation workspace', lastActivity: '1d ago', participants: [{i:'LW',n:'Lin Wei'}], agents: ['Client Pitch Roleplay'], role: 'Editor', riskTier: 'Low' }
 };
 
 const ENGAGEMENT_CODES = {
@@ -69,12 +70,8 @@ const PERSONAS = {
 
 const SERVICE_LINES = ['Fabric', 'Assurance', 'Tax', 'Consulting', 'Strategy and Transactions', 'Internal Functions'];
 
-const RECENT_SEARCHES = {
-  ai: ['Draft proposal for retail client', 'Controls walkthrough agent', 'Summarize meeting notes', 'Find credentials dataset', 'Client pitch roleplay'],
-  standard: ['RFP template', 'Policy Q&A', 'SharePoint connector']
-};
-
 /* ---- Helpers ---- */
+function isAdmin() { return STATE.role === 'admin'; }
 function getActiveWorkspace() {
   if (STATE.workspace === 'private') return WORKSPACES.private;
   if (STATE.workspace === 'approved') return WORKSPACES.acme;
@@ -132,12 +129,8 @@ function govFitBadge(fit) {
   return `<span class="governance-fit ${cls}"><i class="fas fa-shield-alt"></i> ${label}</span>`;
 }
 
+/* ---- Asset Card (no Run; role-aware CTA) ---- */
 function renderAssetCard(asset, showWhy) {
-  const isPaid = asset.pricing !== 'free';
-  const canRun = !isPaid || canRunPaidAsset();
-  const disabledClass = (!canRun && isPaid) ? 'disabled' : '';
-  const tooltipText = isPendingWorkspace() ? 'Awaiting manager approval. You can still run free assets.' :
-    (!isInTeamWorkspace() && isPaid) ? 'Create a Team Workspace to run paid assets.' : '';
   const favIcon = isFavorite(asset.id) ? 'fas fa-star' : 'far fa-star';
   const newBadge = asset.isNew ? '<span class="new-badge">New</span>' : '';
   const whyHtml = (showWhy !== false && asset.whyReasons) ? `
@@ -145,6 +138,9 @@ function renderAssetCard(asset, showWhy) {
       <div class="why-label">Why this result</div>
       <ul>${asset.whyReasons.slice(0,2).map(r => `<li>${r}</li>`).join('')}</ul>
     </div>` : '';
+
+  const ctaLabel = isAdmin() ? 'Add to Workspace' : 'Request add to Workspace';
+  const ctaFn = isAdmin() ? 'openAddToWorkspaceModal' : 'openRequestAddModal';
 
   return `
     <div class="asset-card" data-asset-id="${asset.id}" onclick="navigateToAsset('${asset.id}')">
@@ -171,17 +167,125 @@ function renderAssetCard(asset, showWhy) {
       ${requiresChip(asset) ? `<div style="margin-bottom:6px">${requiresChip(asset)}</div>` : ''}
       ${whyHtml}
       <div class="asset-card-footer" style="margin-top:8px">
-        <div class="tooltip-wrap" style="flex:1">
-          <button class="btn btn-primary btn-sm ${disabledClass}" style="width:100%;justify-content:center" onclick="event.stopPropagation();handleRun('${asset.id}')">
-            <i class="fas fa-play"></i> Run
-          </button>
-          ${tooltipText ? `<span class="tooltip">${tooltipText}</span>` : ''}
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();handleAddToWorkspace('${asset.id}')">
-          <i class="fas fa-plus"></i> Add
+        <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center" onclick="event.stopPropagation();${ctaFn}('${asset.id}')">
+          <i class="fas ${isAdmin() ? 'fa-plus' : 'fa-paper-plane'}"></i> ${ctaLabel}
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();navigateToAsset('${asset.id}')">
+          View details
         </button>
       </div>
     </div>`;
+}
+
+/* ---- Add to Workspace Modal (Admin) ---- */
+function openAddToWorkspaceModal(assetId) {
+  const asset = getAllAssets().find(a => a.id === assetId);
+  if (!asset) return;
+  const teamWs = Object.values(WORKSPACES).filter(w => w.type === 'team');
+  let overlay = $('#add-ws-modal');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'add-ws-modal';
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `<div class="modal" style="max-width:560px"><div class="modal-header"><h2>Add to Workspace</h2><button class="modal-close" onclick="closeModal('add-ws-modal')">&times;</button></div><div class="modal-body" id="add-ws-body"></div><div class="modal-footer" id="add-ws-footer"></div></div>`;
+    document.body.appendChild(overlay);
+  }
+  const body = $('#add-ws-body');
+  const footer = $('#add-ws-footer');
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px;background:var(--chip-bg);border-radius:var(--radius-md)">
+      <div class="asset-type-icon ${typeClass(asset.type)}"><i class="fas ${typeIcon(asset.type)}"></i></div>
+      <div><div style="font-weight:600">${asset.name}</div><div class="text-xs text-muted">${asset.type} &bull; ${asset.risk} Risk &bull; ${asset.cost}</div></div>
+    </div>
+    <div class="form-group"><label>Select existing workspace</label>
+    <div style="display:flex;flex-direction:column;gap:8px" id="add-ws-list">
+      ${teamWs.map(ws => `
+        <div class="ws-select-item" onclick="selectWorkspaceForAdd(this,'${ws.id}')" data-ws="${ws.id}" style="display:flex;align-items:center;gap:12px;padding:12px;border:2px solid var(--card-border);border-radius:var(--radius-md);cursor:pointer;transition:all var(--transition)">
+          <div class="avatar" style="width:32px;height:32px;background:${ws.status==='approved'?'var(--ey-green)':'var(--ey-orange)'};color:#1A1A24;font-size:12px">${ws.icon}</div>
+          <div style="flex:1"><div style="font-weight:600;font-size:0.857rem">${ws.name}</div><div class="text-xs text-muted">${ws.engCode} &bull; ${ws.region}${ws.status==='pending'?' &bull; Pending':''}</div></div>
+          ${ws.budget ? `<div style="text-align:right"><div class="text-xs text-muted">${ws.pct}% used</div><div style="width:60px;height:4px;background:var(--card-border);border-radius:2px;overflow:hidden"><div style="width:${ws.pct}%;height:100%;border-radius:2px;background:${ws.pct>75?'var(--ey-orange)':'var(--ey-green)'}"></div></div></div>` : ''}
+        </div>`).join('')}
+    </div></div>
+    <div style="text-align:center;padding:12px;border-top:1px solid var(--card-border);margin-top:12px">
+      <button class="btn btn-secondary" onclick="closeModal('add-ws-modal');openWorkspaceModal()"><i class="fas fa-plus-circle"></i> Create new Workspace instead</button>
+    </div>
+    ${asset.requiresDataset ? '<div style="padding:10px;background:var(--badge-warning-bg);border-radius:var(--radius-md);margin-top:12px;font-size:0.857rem;color:var(--ey-orange);display:flex;align-items:center;gap:8px"><i class="fas fa-exclamation-triangle"></i> This asset requires dataset access. Approval may be needed.</div>' : ''}`;
+  footer.innerHTML = `<div></div><button class="btn btn-primary" id="confirm-add-btn" disabled onclick="confirmAddToWorkspace('${asset.id}')"><i class="fas fa-check"></i> Add to Workspace</button>`;
+  openModal('add-ws-modal');
+}
+
+let selectedWsForAdd = null;
+function selectWorkspaceForAdd(el, wsId) {
+  $$('#add-ws-list .ws-select-item').forEach(i => i.style.borderColor = 'var(--card-border)');
+  el.style.borderColor = 'var(--text-primary)';
+  selectedWsForAdd = wsId;
+  const btn = $('#confirm-add-btn');
+  if (btn) btn.disabled = false;
+}
+
+function confirmAddToWorkspace(assetId) {
+  const ws = WORKSPACES[selectedWsForAdd];
+  if (!ws) return;
+  const asset = getAllAssets().find(a => a.id === assetId);
+  const body = $('#add-ws-body');
+  const footer = $('#add-ws-footer');
+  const lockedNote = ws.status === 'pending' ? '<div style="padding:10px;background:var(--badge-warning-bg);border-radius:var(--radius-md);margin-top:12px;font-size:0.857rem;color:var(--ey-orange);display:flex;align-items:center;gap:8px"><i class="fas fa-lock"></i> Locked until approval &mdash; workspace is pending. Free assets available now.</div>' : '';
+  body.innerHTML = `<div class="completion-state"><div class="completion-icon approved"><i class="fas fa-check"></i></div><h2>${asset ? asset.name : 'Asset'} added to ${ws.name}</h2><p style="margin-top:8px;color:var(--ey-gray-600)">The asset is now available in the workspace's Assets tab.</p>${lockedNote}</div>`;
+  footer.innerHTML = `<div></div><div style="display:flex;gap:8px"><a href="workspace-home.html?ws=${ws.id}" class="btn btn-primary">Open Workspace</a><button class="btn btn-secondary" onclick="closeModal('add-ws-modal')">Close</button></div>`;
+  selectedWsForAdd = null;
+}
+
+/* ---- Request add to Workspace Modal (Contributor) ---- */
+function openRequestAddModal(assetId) {
+  const asset = getAllAssets().find(a => a.id === assetId);
+  if (!asset) return;
+  const teamWs = Object.values(WORKSPACES).filter(w => w.type === 'team');
+  let overlay = $('#request-ws-modal');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'request-ws-modal';
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `<div class="modal" style="max-width:520px"><div class="modal-header"><h2>Request add to Workspace</h2><button class="modal-close" onclick="closeModal('request-ws-modal')">&times;</button></div><div class="modal-body" id="request-ws-body"></div><div class="modal-footer" id="request-ws-footer"></div></div>`;
+    document.body.appendChild(overlay);
+  }
+  const body = $('#request-ws-body');
+  const footer = $('#request-ws-footer');
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px;background:var(--chip-bg);border-radius:var(--radius-md)">
+      <div class="asset-type-icon ${typeClass(asset.type)}"><i class="fas ${typeIcon(asset.type)}"></i></div>
+      <div><div style="font-weight:600">${asset.name}</div><div class="text-xs text-muted">${asset.type} &bull; ${asset.risk} Risk &bull; ${asset.cost}</div></div>
+    </div>
+    <div class="form-group"><label>Select workspace to request addition</label>
+    <div style="display:flex;flex-direction:column;gap:8px" id="request-ws-list">
+      ${teamWs.length ? teamWs.map(ws => `
+        <div class="ws-select-item" onclick="selectWorkspaceForRequest(this,'${ws.id}')" data-ws="${ws.id}" style="display:flex;align-items:center;gap:12px;padding:12px;border:2px solid var(--card-border);border-radius:var(--radius-md);cursor:pointer;transition:all var(--transition)">
+          <div class="avatar" style="width:32px;height:32px;background:${ws.status==='approved'?'var(--ey-green)':'var(--ey-orange)'};color:#1A1A24;font-size:12px">${ws.icon}</div>
+          <div style="flex:1"><div style="font-weight:600;font-size:0.857rem">${ws.name}</div><div class="text-xs text-muted">${ws.engCode} &bull; Admin: ${ws.owner}</div></div>
+        </div>`).join('') : '<div style="padding:16px;text-align:center;color:var(--ey-gray-500)">You don\'t belong to any team workspaces.</div>'}
+    </div></div>
+    <div class="form-group"><label>Reason (optional)</label><textarea class="form-input" rows="2" placeholder="Why do you need this asset?" id="request-reason"></textarea></div>`;
+  footer.innerHTML = `<div></div><button class="btn btn-primary" id="confirm-request-btn" disabled onclick="confirmRequestAdd('${asset.id}')"><i class="fas fa-paper-plane"></i> Send Request</button>`;
+  openModal('request-ws-modal');
+}
+
+let selectedWsForRequest = null;
+function selectWorkspaceForRequest(el, wsId) {
+  $$('#request-ws-list .ws-select-item').forEach(i => i.style.borderColor = 'var(--card-border)');
+  el.style.borderColor = 'var(--text-primary)';
+  selectedWsForRequest = wsId;
+  const btn = $('#confirm-request-btn');
+  if (btn) btn.disabled = false;
+}
+
+function confirmRequestAdd(assetId) {
+  const ws = WORKSPACES[selectedWsForRequest];
+  if (!ws) return;
+  const asset = getAllAssets().find(a => a.id === assetId);
+  const body = $('#request-ws-body');
+  const footer = $('#request-ws-footer');
+  body.innerHTML = `<div class="completion-state"><div class="completion-icon pending"><i class="fas fa-paper-plane"></i></div><h2>Request sent</h2><p style="margin-top:8px;color:var(--ey-gray-600)">Your request to add <strong>${asset ? asset.name : 'this asset'}</strong> to <strong>${ws.name}</strong> has been sent to the workspace admin (<strong>${ws.owner}</strong>).</p><div style="margin-top:12px"><span class="chip chip-orange">Pending approval</span></div></div>`;
+  footer.innerHTML = `<div></div><button class="btn btn-secondary" onclick="closeModal('request-ws-modal')">Close</button>`;
+  selectedWsForRequest = null;
 }
 
 /* ---- Left Navigation ---- */
@@ -189,7 +293,6 @@ function renderLeftNav() {
   const nav = $('.left-nav');
   if (!nav) return;
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-  const ws = getActiveWorkspace();
 
   nav.innerHTML = `
     <div class="nav-brand">
@@ -209,7 +312,7 @@ function renderLeftNav() {
           <span class="nav-label">Finder</span>
         </a>
       </div>
-      <div class="nav-item ${['index.html'].includes(currentPage) && window.location.hash === '#workspaces' ? 'active' : ''} expanded" data-tooltip="Workspaces" onclick="this.classList.toggle('expanded')">
+      <div class="nav-item expanded" data-tooltip="Workspaces" onclick="this.classList.toggle('expanded')">
         <div class="nav-item-content">
           <span class="nav-icon"><i class="fas fa-folder"></i></span>
           <span class="nav-label">Workspaces</span>
@@ -218,19 +321,26 @@ function renderLeftNav() {
       </div>
       <div class="nav-children">
         <div class="nav-item" data-tooltip="My Private">
-          <a class="nav-item-content" href="#" onclick="event.preventDefault();switchWorkspace('private')">
+          <a class="nav-item-content" href="workspace-home.html?ws=private">
             <span class="nav-label">My Private</span>
           </a>
         </div>
         <div class="nav-item" data-tooltip="ACME Retail">
-          <a class="nav-item-content" href="#" onclick="event.preventDefault();switchWorkspace('acme')">
+          <a class="nav-item-content" href="workspace-home.html?ws=acme">
             <span class="nav-label">ACME Retail RFP Team</span>
             <span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-ACME-2026-001</span>
           </a>
         </div>
         <div class="nav-item" data-tooltip="GloboCo Finance">
-          <a class="nav-item-content" href="#" onclick="event.preventDefault();switchWorkspace('globo')">
+          <a class="nav-item-content" href="workspace-home.html?ws=globo">
             <span class="nav-label">GloboCo Finance Controls</span>
+            <span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-GLOBO-2026-014</span>
+          </a>
+        </div>
+        <div class="nav-item" data-tooltip="Retail Q2">
+          <a class="nav-item-content" href="workspace-home.html?ws=retail">
+            <span class="nav-label">Retail Q2 Pitch</span>
+            <span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-RETAIL-2026-009 &bull; Pending</span>
           </a>
         </div>
       </div>
@@ -325,59 +435,12 @@ function showInlineModal(title, bodyHtml) {
     overlay = document.createElement('div');
     overlay.id = 'inline-modal';
     overlay.className = 'modal-overlay';
-    overlay.innerHTML = `<div class="modal" style="max-width:480px">
-      <div class="modal-header"><h2></h2><button class="modal-close" onclick="closeModal('inline-modal')">&times;</button></div>
-      <div class="modal-body"></div>
-    </div>`;
+    overlay.innerHTML = `<div class="modal" style="max-width:480px"><div class="modal-header"><h2></h2><button class="modal-close" onclick="closeModal('inline-modal')">&times;</button></div><div class="modal-body"></div></div>`;
     document.body.appendChild(overlay);
   }
   overlay.querySelector('.modal-header h2').textContent = title;
   overlay.querySelector('.modal-body').innerHTML = bodyHtml;
   openModal('inline-modal');
-}
-
-/* ---- Workspace Switcher ---- */
-function updateWorkspaceSwitcher() {
-  const ws = getActiveWorkspace();
-  const switcher = $('.ws-switcher');
-  if (!switcher) return;
-  const statusClass = ws.type === 'private' ? 'ws-private' : (ws.status === 'approved' ? 'ws-approved' : 'ws-pending');
-  switcher.className = `ws-switcher ${statusClass}`;
-  switcher.innerHTML = `
-    <div class="ws-switcher-icon">${ws.icon}</div>
-    <div>
-      <div class="ws-switcher-label">${ws.name}</div>
-      <div class="ws-switcher-meta">${ws.engCode || 'Free tier \u2022 200 runs/mo'}${ws.region ? ' \u2022 ' + ws.region : ''}</div>
-    </div>
-    <span class="ws-switcher-arrow"><i class="fas fa-chevron-down"></i></span>`;
-}
-
-function renderWorkspaceDropdown() {
-  const dropdown = $('.ws-dropdown');
-  if (!dropdown) return;
-  const current = getActiveWorkspace();
-  let html = '<div class="ws-dropdown-header">Your Workspaces</div>';
-  Object.values(WORKSPACES).forEach(ws => {
-    const isActive = ws.id === current.id;
-    const statusColor = ws.type === 'private' ? '#737387' : (ws.status === 'approved' ? '#48E674' : '#FF9831');
-    const budgetHtml = ws.budget ? `<div class="ws-dropdown-budget"><div class="ws-dropdown-budget-fill" style="width:${ws.pct}%;background:${ws.pct > 75 ? '#FF9831' : '#48E674'}"></div></div><span class="text-xs text-muted">${ws.pct}%</span>` : '';
-    html += `<div class="ws-dropdown-item ${isActive ? 'active' : ''}" onclick="switchWorkspace('${ws.id}')">
-      <div class="ws-icon" style="background:${statusColor};color:#1A1A24">${ws.icon}</div>
-      <div class="ws-info"><div class="ws-name">${ws.name}</div><div class="ws-meta">${ws.engCode || 'Free tier'}${ws.status === 'pending' ? ' \u2022 Pending' : ''}${ws.region ? ' \u2022 ' + ws.region : ''}</div></div>
-      ${budgetHtml}
-    </div>`;
-  });
-  html += `<div class="ws-dropdown-create" onclick="openWorkspaceModal()"><i class="fas fa-plus-circle"></i> Create Team Workspace (link your engagement code)</div>`;
-  dropdown.innerHTML = html;
-}
-
-function toggleWorkspaceDropdown(e) { if (e) e.stopPropagation(); toggle($('.ws-dropdown')); }
-function switchWorkspace(id) {
-  const ws = WORKSPACES[id];
-  if (!ws) return;
-  STATE.workspace = ws.type === 'private' ? 'private' : (ws.status === 'approved' ? 'approved' : 'pending');
-  updateAllUI();
-  hide($('.ws-dropdown'));
 }
 
 /* ---- Banners ---- */
@@ -386,9 +449,9 @@ function updateBanners() {
   if (!area) return;
   let html = '';
   if (STATE.workspace === 'private') {
-    html += `<div class="banner banner-info"><i class="fas fa-info-circle"></i><span>Use free assets in My Private (limits apply). Create a Team Workspace for paid assets.</span><button class="btn btn-sm btn-secondary" onclick="openWorkspaceModal()">Create Team Workspace</button></div>`;
+    html += `<div class="banner banner-info"><i class="fas fa-info-circle"></i><span>Use free assets in My Private (limits apply). Create a Team Workspace for paid assets.</span>${isAdmin() ? '<button class="btn btn-sm btn-secondary" onclick="openWorkspaceModal()">Create Team Workspace</button>' : ''}</div>`;
   } else if (STATE.workspace === 'pending') {
-    html += `<div class="banner banner-warning"><i class="fas fa-clock"></i><span>Awaiting manager approval \u2014 free assets available. <a href="#" onclick="event.preventDefault();alert('Reminder sent!')">Nudge approver</a></span></div>`;
+    html += `<div class="banner banner-warning"><i class="fas fa-clock"></i><span>Awaiting manager approval &mdash; free assets available. <a href="#" onclick="event.preventDefault();alert('Reminder sent!')">Nudge approver</a></span></div>`;
   }
   area.innerHTML = html;
 }
@@ -398,6 +461,10 @@ function updateStateSwitcher() {
   const body = $('.state-switcher-body');
   if (!body) return;
   body.innerHTML = `
+    <label>Role <select onchange="STATE.role=this.value;updateAllUI()">
+      <option value="admin" ${STATE.role === 'admin' ? 'selected' : ''}>Admin</option>
+      <option value="contributor" ${STATE.role === 'contributor' ? 'selected' : ''}>Contributor</option>
+    </select></label>
     <label>Workspace <select onchange="STATE.workspace=this.value;updateAllUI()">
       <option value="private" ${STATE.workspace === 'private' ? 'selected' : ''}>No Team WS</option>
       <option value="approved" ${STATE.workspace === 'approved' ? 'selected' : ''}>Approved (ACME)</option>
@@ -437,7 +504,7 @@ let wsCreateStep = 1;
 let wsCreateData = {};
 
 function openWorkspaceModal() {
-  if (STATE.tenantPolicy === 'manageronly') { alert('Workspace creation is restricted to managers. Contact your engagement manager.'); return; }
+  if (!isAdmin() && STATE.tenantPolicy === 'manageronly') { alert('Workspace creation is restricted to managers. Contact your engagement manager.'); return; }
   wsCreateStep = 1; wsCreateData = {};
   renderWSCreateStep();
   openModal('ws-create-modal');
@@ -502,9 +569,9 @@ function validateEngCode() {
   wsCreateData.engCode = code;
   const onTeam = eng.team.includes(STATE.currentUser.email);
   if (onTeam) {
-    result.innerHTML = `<div class="code-validation success"><i class="fas fa-check-circle" style="color:var(--ey-green)"></i><div class="code-validation-info"><strong>Verified \u2014 Auto-approved</strong><p>Owner: ${eng.owner} \u2022 Budget: $${eng.budget.toLocaleString()} \u2022 Region: ${eng.region}</p><p style="color:var(--ey-green);font-size:0.786rem;margin-top:4px">You are on the engagement team.</p></div></div>`;
+    result.innerHTML = `<div class="code-validation success"><i class="fas fa-check-circle" style="color:var(--ey-green)"></i><div class="code-validation-info"><strong>Verified &mdash; Auto-approved</strong><p>Owner: ${eng.owner} &bull; Budget: $${eng.budget.toLocaleString()} &bull; Region: ${eng.region}</p><p style="color:var(--ey-green);font-size:0.786rem;margin-top:4px">You are on the engagement team.</p></div></div>`;
   } else {
-    result.innerHTML = `<div class="code-validation pending"><i class="fas fa-clock" style="color:var(--ey-orange)"></i><div class="code-validation-info"><strong>Verified \u2014 Approval required</strong><p>Owner: ${eng.owner} \u2022 Budget: $${eng.budget.toLocaleString()} \u2022 Region: ${eng.region}</p><p style="color:var(--ey-orange);font-size:0.786rem;margin-top:4px">Not on engagement team. ${eng.owner} will be notified. Free assets available while pending.</p></div></div>`;
+    result.innerHTML = `<div class="code-validation pending"><i class="fas fa-clock" style="color:var(--ey-orange)"></i><div class="code-validation-info"><strong>Verified &mdash; Approval required</strong><p>Owner: ${eng.owner} &bull; Budget: $${eng.budget.toLocaleString()} &bull; Region: ${eng.region}</p><p style="color:var(--ey-orange);font-size:0.786rem;margin-top:4px">Not on engagement team. ${eng.owner} will be notified. Free assets available while pending.</p></div></div>`;
   }
   if (nextBtn) nextBtn.disabled = false;
 }
@@ -515,66 +582,14 @@ function wsCreateComplete() {
   const eng = ENGAGEMENT_CODES[wsCreateData.engCode];
   const onTeam = eng && eng.team.includes(STATE.currentUser.email);
   if (onTeam) {
-    body.innerHTML = `<div class="completion-state"><div class="completion-icon approved"><i class="fas fa-check"></i></div><h2>Workspace Created \u2014 Ready to Use</h2><p style="margin-top:8px">"<strong>${wsCreateData.name || 'New Workspace'}</strong>" linked to <strong>${wsCreateData.engCode}</strong>.</p><p style="margin-top:4px;color:var(--ey-green)">You can now run paid assets.</p><div style="margin-top:20px;display:flex;gap:8px;justify-content:center"><button class="btn btn-primary" onclick="STATE.workspace='approved';updateAllUI();closeModal('ws-create-modal')">Go to Workspace</button><button class="btn btn-secondary" onclick="closeModal('ws-create-modal')">Close</button></div></div>`;
+    body.innerHTML = `<div class="completion-state"><div class="completion-icon approved"><i class="fas fa-check"></i></div><h2>Workspace Created &mdash; Ready to Use</h2><p style="margin-top:8px">"<strong>${wsCreateData.name || 'New Workspace'}</strong>" linked to <strong>${wsCreateData.engCode}</strong>.</p><p style="margin-top:4px;color:var(--ey-green)">You can now run paid assets.</p><div style="margin-top:20px;display:flex;gap:8px;justify-content:center"><a href="workspace-home.html?ws=acme" class="btn btn-primary">Go to Workspace</a><button class="btn btn-secondary" onclick="closeModal('ws-create-modal')">Close</button></div></div>`;
   } else {
-    body.innerHTML = `<div class="completion-state"><div class="completion-icon pending"><i class="fas fa-clock"></i></div><h2>Workspace Created \u2014 Pending Approval</h2><p style="margin-top:8px">Awaiting approval from <strong>${eng?.owner}</strong>.</p><p style="margin-top:4px;color:var(--ey-orange)">Free assets available while pending.</p><div style="margin-top:20px;display:flex;gap:8px;justify-content:center"><button class="btn btn-primary" onclick="STATE.workspace='pending';updateAllUI();closeModal('ws-create-modal')">Use Free Assets</button><button class="btn btn-secondary" onclick="alert('Reminder sent!')">Nudge Approver</button></div></div>`;
+    body.innerHTML = `<div class="completion-state"><div class="completion-icon pending"><i class="fas fa-clock"></i></div><h2>Workspace Created &mdash; Pending Approval</h2><p style="margin-top:8px">Awaiting approval from <strong>${eng?.owner}</strong>.</p><p style="margin-top:4px;color:var(--ey-orange)">Free assets available while pending.</p><div style="margin-top:20px;display:flex;gap:8px;justify-content:center"><a href="workspace-home.html?ws=retail" class="btn btn-primary">Use Free Assets</a><button class="btn btn-secondary" onclick="alert('Reminder sent!')">Nudge Approver</button></div></div>`;
   }
   $('#ws-create-footer').innerHTML = '';
 }
 
-/* ---- Run Panel ---- */
-function openRunPanel(assetId) {
-  const asset = getAllAssets().find(a => a.id === assetId);
-  if (!asset) return;
-  const ws = getActiveWorkspace();
-  const panelBody = $('#run-panel-body');
-  const panelFooter = $('#run-panel-footer');
-  if (!panelBody) return;
-  const isPaid = asset.pricing !== 'free';
-  let chargeHtml = '';
-  if (isPaid && isApprovedWorkspace()) {
-    chargeHtml = `<div class="run-charge-line"><i class="fas fa-info-circle"></i> This run will charge workspace ${ws.name} (Engagement ${ws.engCode}).</div>`;
-  }
-  let datasetWarning = '';
-  if (asset.requiresDataset && !STATE.datasetApproved) {
-    datasetWarning = `<div style="padding:12px;background:var(--badge-warning-bg);border-radius:var(--radius-md);margin-bottom:16px;display:flex;align-items:start;gap:8px"><i class="fas fa-exclamation-triangle" style="color:var(--ey-orange);margin-top:2px"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-orange)">Dataset access required</div><p class="text-sm">This asset requires a Restricted dataset.</p><button class="btn btn-sm btn-secondary" style="margin-top:8px" onclick="alert('Dataset access request submitted. Low-risk datasets may be auto-approved (Fast-Lane).')">Request Dataset Access</button></div></div>`;
-  }
-  panelBody.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-      <div class="asset-type-icon ${typeClass(asset.type)}"><i class="fas ${typeIcon(asset.type)}"></i></div>
-      <div><div style="font-weight:600">${asset.name}</div><div class="text-xs text-muted">${asset.type} \u2022 ${asset.risk} Risk</div></div>
-    </div>
-    ${chargeHtml}${datasetWarning}
-    ${!STATE.exportAllowed ? '<div style="padding:8px 12px;background:var(--chip-bg);border-radius:var(--radius-md);display:flex;align-items:center;gap:8px;font-size:0.786rem;color:var(--ey-gray-500);margin-bottom:16px"><i class="fas fa-lock"></i> External export blocked by policy</div>' : ''}
-    <div class="form-group"><label>Input Documents</label><div style="border:2px dashed var(--input-border);border-radius:var(--radius-md);padding:24px;text-align:center"><i class="fas fa-cloud-upload-alt" style="font-size:1.5rem;color:var(--ey-gray-400);margin-bottom:8px"></i><p class="text-sm">Drag files here or <a href="#">browse</a></p></div></div>
-    <div class="form-group"><label>Additional Instructions</label><textarea class="form-input" rows="3" placeholder="Any specific requirements..."></textarea></div>
-    <div class="run-cost-estimate"><div style="font-weight:600;margin-bottom:8px;font-size:0.857rem">Pre-run Cost Estimate</div><div class="run-cost-row"><span>Base computation</span><span>${isPaid ? '$1.20' : 'Free'}</span></div><div class="run-cost-row"><span>Document processing</span><span>${isPaid ? '$0.80' : 'Free'}</span></div><div class="run-cost-row"><span>Output generation</span><span>${isPaid ? '$0.40' : 'Free'}</span></div><div class="run-cost-row total"><span>Estimated Total</span><span>${isPaid ? '$2.40' : 'Free'}</span></div></div>
-    ${isPaid ? '<div class="text-xs text-muted" style="text-align:center"><a href="#">How costs are calculated</a></div>' : ''}
-    <div style="margin-top:16px;padding:10px;background:var(--chip-bg);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:between;font-size:0.786rem">
-      <span>Save as Recipe after run?</span>
-      <label style="display:flex;align-items:center;gap:6px;margin-left:auto;cursor:pointer"><input type="checkbox"> Yes</label>
-    </div>`;
-  const canExecute = !isPaid || canRunPaidAsset();
-  const blocked = asset.requiresDataset && !STATE.datasetApproved;
-  panelFooter.innerHTML = `<button class="btn btn-primary btn-lg w-full" style="justify-content:center" ${(!canExecute || blocked) ? 'disabled' : ''} onclick="alert('Run started for ${asset.name}!')"><i class="fas fa-play"></i> Run ${asset.name}</button>
-    ${!canExecute ? '<p class="text-xs text-muted" style="text-align:center;margin-top:8px">Requires approved Team Workspace with Engagement Code</p>' : ''}`;
-  openModal('run-panel');
-}
-
-function handleRun(assetId) {
-  const asset = getAllAssets().find(a => a.id === assetId);
-  if (!asset) return;
-  const isPaid = asset.pricing !== 'free';
-  if (isPaid && !isInTeamWorkspace()) { openWorkspaceModal(); return; }
-  if (isPaid && isPendingWorkspace()) return;
-  openRunPanel(assetId);
-}
-
-function handleAddToWorkspace(assetId) {
-  if (!isInTeamWorkspace()) { openWorkspaceModal(); return; }
-  alert(`Asset added to ${getActiveWorkspace().name}`);
-}
-
+/* ---- Navigation Helpers ---- */
 function navigateToAsset(id) { window.location.href = `asset-detail.html?id=${id}`; }
 function navigateTo(page) { window.location.href = page; }
 
@@ -605,23 +620,22 @@ function initTheme() {
 
 /* ---- Update All ---- */
 function updateAllUI() {
-  updateWorkspaceSwitcher();
-  renderWorkspaceDropdown();
   updateBanners();
   updateStateSwitcher();
   renderLeftNav();
+  updateRoleIndicator();
   if (typeof updatePageUI === 'function') updatePageUI();
+}
+
+function updateRoleIndicator() {
+  const el = $('#role-indicator');
+  if (el) el.innerHTML = `<i class="fas ${isAdmin() ? 'fa-shield-alt' : 'fa-user'}"></i> ${isAdmin() ? 'Admin' : 'Contributor'}`;
 }
 
 /* ---- Init ---- */
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   updateAllUI();
-  document.addEventListener('click', (e) => {
-    const dropdown = $('.ws-dropdown');
-    const switcher = $('.ws-switcher');
-    if (dropdown && !dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && !switcher?.contains(e.target)) hide(dropdown);
-  });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeAllModals();
   });

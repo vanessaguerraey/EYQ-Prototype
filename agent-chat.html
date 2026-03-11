@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EYQ — Agent Chat</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="motif-theme-dark">
+
+<header class="top-bar">
+  <div class="top-bar-left"><a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a></div>
+  <div class="top-bar-right">
+    <span id="role-indicator" class="role-chip-bar" style="cursor:default"><i class="fas fa-shield-alt"></i> Admin</span>
+    <button class="notif-btn" id="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-sun"></i></button>
+    <div class="avatar">AM</div>
+  </div>
+</header>
+<nav class="left-nav" role="navigation"></nav>
+
+<main class="app-content" style="display:flex;flex-direction:column;height:calc(100vh - var(--header-height))">
+
+  <!-- Chat Header -->
+  <div class="chat-header" id="chat-header"></div>
+
+  <!-- Charge Line -->
+  <div id="charge-line" style="padding:0 24px"></div>
+
+  <!-- Messages -->
+  <div class="chat-messages" id="chat-messages">
+    <div class="chat-msg assistant">
+      <div>Hello! I'm the <strong id="agent-name-msg">RFP Draft Agent</strong>. I can help you draft proposals using EY templates and your team's credentials dataset.</div>
+      <div>What would you like to work on today?</div>
+      <div class="msg-meta">RFP Draft Agent &bull; Just now</div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="chat-input-area">
+    <div id="pre-run-estimate" style="margin-bottom:8px"></div>
+    <div id="budget-block" class="hidden" style="padding:10px;background:var(--badge-error-bg);border-radius:var(--radius-md);margin-bottom:8px;font-size:0.857rem;color:var(--ey-red);display:flex;align-items:center;gap:8px"><i class="fas fa-ban"></i> Budget hard cap reached. Contact workspace admin to increase the limit.</div>
+    <div id="dataset-block" class="hidden" style="padding:10px;background:var(--badge-warning-bg);border-radius:var(--radius-md);margin-bottom:8px;font-size:0.857rem;color:var(--ey-orange);display:flex;align-items:center;gap:8px"><i class="fas fa-lock"></i> This agent requires dataset access. <button class="btn btn-sm btn-secondary" onclick="alert('Dataset access request submitted. Low-risk datasets may be auto-approved (Fast-Lane).')">Request Access</button></div>
+    <div class="chat-input-wrap">
+      <input class="chat-input" id="chat-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendMessage()">
+      <button class="search-submit" id="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Send</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+      <div class="text-xs text-muted"><i class="fas fa-paperclip"></i> Attach files &bull; <i class="fas fa-cog"></i> Settings</div>
+      <div class="text-xs text-muted" id="export-policy"></div>
+    </div>
+  </div>
+</main>
+
+<div class="state-switcher"><div class="state-switcher-header" onclick="toggleStateSwitcher()"><span><i class="fas fa-sliders-h"></i> Prototype States</span><i class="fas fa-chevron-up"></i></div><div class="state-switcher-body"></div></div>
+
+<script src="app.js"></script>
+<script>
+function getParams() {
+  const p = new URLSearchParams(window.location.search);
+  return { ws: p.get('ws') || 'acme', asset: p.get('asset') || 'rfp-draft' };
+}
+
+function renderChatHeader() {
+  const { ws, asset } = getParams();
+  const workspace = WORKSPACES[ws] || WORKSPACES.acme;
+  const assetObj = getAllAssets().find(a => a.id === asset);
+  const header = $('#chat-header');
+  if (!header) return;
+  header.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="workspace-home.html?ws=${ws}" class="btn btn-ghost btn-sm"><i class="fas fa-arrow-left"></i></a>
+      <div class="asset-type-icon ${assetObj ? typeClass(assetObj.type) : 'agent'}"><i class="fas ${assetObj ? typeIcon(assetObj.type) : 'fa-robot'}"></i></div>
+      <div>
+        <div style="font-weight:600">${assetObj ? assetObj.name : 'Agent'}</div>
+        <div class="text-xs text-muted">${workspace.name} &bull; ${workspace.engCode || 'Free tier'}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="alert('Saved as Recipe')"><i class="fas fa-bookmark"></i> Save as Recipe</button>
+      <button class="btn btn-ghost btn-sm" onclick="alert('Run history')"><i class="fas fa-history"></i></button>
+    </div>`;
+  const agentNameMsg = $('#agent-name-msg');
+  if (agentNameMsg && assetObj) agentNameMsg.textContent = assetObj.name;
+}
+
+function renderChargeLine() {
+  const { ws, asset } = getParams();
+  const workspace = WORKSPACES[ws] || WORKSPACES.acme;
+  const assetObj = getAllAssets().find(a => a.id === asset);
+  const container = $('#charge-line');
+  if (!container) return;
+  const isPaid = assetObj && assetObj.pricing !== 'free';
+  if (isPaid && workspace.engCode) {
+    container.innerHTML = `<div class="chat-cost-bar"><i class="fas fa-info-circle"></i> This run will charge workspace ${workspace.name} (Engagement ${workspace.engCode}).</div>`;
+  } else if (!isPaid) {
+    container.innerHTML = `<div class="chat-cost-bar" style="background:var(--badge-success-bg);color:var(--ey-green)"><i class="fas fa-check-circle"></i> This asset is free. No charges apply.</div>`;
+  }
+}
+
+function renderPreRunEstimate() {
+  const { asset } = getParams();
+  const assetObj = getAllAssets().find(a => a.id === asset);
+  const container = $('#pre-run-estimate');
+  if (!container || !assetObj || assetObj.pricing === 'free') return;
+  container.innerHTML = `<div class="chat-cost-bar"><i class="fas fa-calculator"></i> Estimated cost per message: ~${assetObj.cost || '$2.40'} &bull; <a href="#" onclick="event.preventDefault();alert('Cost breakdown: base $1.20, processing $0.80, output $0.40')">How costs are calculated</a></div>`;
+}
+
+function checkBlocks() {
+  const budgetBlock = $('#budget-block');
+  const datasetBlock = $('#dataset-block');
+  const sendBtn = $('#send-btn');
+  if (STATE.budgetState === 'hardcap') { show(budgetBlock); if (sendBtn) sendBtn.disabled = true; }
+  else { hide(budgetBlock); if (sendBtn) sendBtn.disabled = false; }
+  const { asset } = getParams();
+  const assetObj = getAllAssets().find(a => a.id === asset);
+  if (assetObj && assetObj.requiresDataset && !STATE.datasetApproved) show(datasetBlock);
+  else hide(datasetBlock);
+  const exportEl = $('#export-policy');
+  if (exportEl) exportEl.innerHTML = STATE.exportAllowed ? '<i class="fas fa-check-circle" style="color:var(--ey-green)"></i> Export allowed' : '<i class="fas fa-lock" style="color:var(--ey-orange)"></i> External export blocked';
+}
+
+function sendMessage() {
+  const input = $('#chat-input');
+  const messages = $('#chat-messages');
+  if (!input || !input.value.trim() || !messages) return;
+  const text = input.value.trim();
+  input.value = '';
+  messages.innerHTML += `<div class="chat-msg user"><div>${text}</div><div class="msg-meta">You &bull; Just now</div></div>`;
+  setTimeout(() => {
+    const { asset } = getParams();
+    const assetObj = getAllAssets().find(a => a.id === asset);
+    messages.innerHTML += `<div class="chat-msg assistant"><div>I've processed your request. Here's what I found based on the ${assetObj ? assetObj.template || 'EY methodology' : 'EY methodology'}:</div><div style="margin-top:8px;padding:12px;background:var(--chip-bg);border-radius:var(--radius-md)"><strong>Draft Output</strong><p class="text-sm" style="margin-top:4px">Based on your input, I've generated a draft using the latest templates. You can review and refine it below.</p></div><div class="msg-meta">${assetObj ? assetObj.name : 'Agent'} &bull; Just now</div></div>`;
+    messages.scrollTop = messages.scrollHeight;
+  }, 1200);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function updatePageUI() {
+  renderChatHeader();
+  renderChargeLine();
+  renderPreRunEstimate();
+  checkBlocks();
+}
+</script>
+</body>
+</html>
