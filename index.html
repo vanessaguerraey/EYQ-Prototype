@@ -9,7 +9,6 @@
 </head>
 <body class="motif-theme-dark">
 
-<!-- Header (no workspace switcher) -->
 <header class="top-bar">
   <div class="top-bar-left">
     <a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a>
@@ -26,27 +25,32 @@
   </div>
 </header>
 
-<!-- Left Navigation -->
 <nav class="left-nav" role="navigation" aria-label="Main navigation"></nav>
 
-<!-- Main Content -->
 <main class="app-content">
   <div id="banner-area"></div>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-inner">
-      <h1>Find AI tools for your team's work.</h1>
-      <p>Discover agents, datasets, and roleplays tailored to EY methods&mdash;use them in a governed workspace tied to your engagement.</p>
+  <!-- Top Bar: Quick Actions (top-right) + Title (top-left) -->
+  <section style="padding:20px 24px 0;background:var(--card-bg);border-bottom:1px solid var(--card-border)">
+    <div style="max-width:1400px;margin:0 auto">
+      <div style="display:flex;align-items:start;justify-content:space-between;gap:24px;flex-wrap:wrap">
+        <!-- Left: Title -->
+        <div style="flex:1;min-width:300px">
+          <h1 style="margin-bottom:4px">Find AI tools for your team's work.</h1>
+          <p style="color:var(--ey-gray-600);max-width:560px">Discover agents, datasets, and roleplays tailored to EY methods&mdash;use them in a governed workspace tied to your engagement.</p>
+        </div>
+        <!-- Right: Quick Actions -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="quick-actions"></div>
+      </div>
 
-      <!-- Inline Finder Wrapper -->
-      <div class="finder-wrapper" style="margin-top:24px;max-width:780px">
-        <div class="search-input-wrap" id="finder-input-wrap">
+      <!-- AI Finder (prominent, inline) -->
+      <div style="margin-top:20px;padding-bottom:24px;max-width:100%">
+        <div class="search-input-wrap" id="finder-input-wrap" style="max-width:780px">
           <i class="fas fa-search" style="color:var(--ey-gray-500)"></i>
           <input class="search-input" id="finder-input" placeholder="Describe your task (e.g., 'Draft a proposal for a retail client using last quarter's credentials')." maxlength="512" oninput="updateFinderCharCount()">
           <button class="search-submit" onclick="submitFinderSearch()">Search</button>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;max-width:780px">
           <div class="char-counter"><span id="finder-char-count">0</span>/512</div>
           <div style="position:relative">
             <span class="search-helper" onclick="document.getElementById('rec-popover').classList.toggle('hidden')"><i class="fas fa-question-circle"></i> How recommendations work</span>
@@ -60,13 +64,13 @@
           </div>
         </div>
 
-        <!-- Role Cards (mini, inline) -->
+        <!-- Graphic Role Cards -->
         <div style="margin-top:16px">
           <div style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px">Or choose your role to see suggested tasks</div>
           <div class="mini-role-grid" id="mini-role-grid"></div>
         </div>
 
-        <!-- Task Chips -->
+        <!-- Task Chips (appear when role selected) -->
         <div id="finder-tasks-area" class="hidden" style="margin-top:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <div style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;letter-spacing:0.3px">Suggested tasks <span id="finder-role-label" style="color:var(--text-primary);text-transform:none"></span></div>
@@ -83,36 +87,8 @@
   </section>
 
   <div class="page-container">
-    <!-- Quick Actions -->
-    <div class="section-block">
-      <div class="quick-actions" id="quick-actions"></div>
-    </div>
-
-    <!-- Favorites Rail -->
-    <div class="section-block">
-      <div class="section-header">
-        <div class="section-title"><h3><i class="fas fa-star" style="color:var(--text-primary);margin-right:6px"></i> Your favorites</h3></div>
-      </div>
-      <div class="favorites-rail" id="favorites-rail"></div>
-    </div>
-
     <div class="dashboard-grid">
       <div class="dashboard-main">
-        <!-- Your Recent Workspaces -->
-        <div class="section-block">
-          <div class="section-header">
-            <div class="section-title"><h3>Your recent workspaces</h3></div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <select class="form-select" style="width:auto;padding:4px 8px;font-size:0.786rem" id="ws-sort" onchange="renderWorkspaceTiles()">
-                <option value="recent">Most recently active</option>
-                <option value="name">Name</option>
-                <option value="budget">Budget used</option>
-              </select>
-            </div>
-          </div>
-          <div class="ws-tiles" id="ws-tiles"></div>
-        </div>
-
         <!-- Discover & Consume -->
         <div class="section-block">
           <div class="section-header">
@@ -133,21 +109,10 @@
             <div class="section-title"><div class="section-icon build"><i class="fas fa-flask"></i></div><div><h3>Build</h3><span class="text-xs text-muted">Agent Studio & blueprints</span></div></div>
             <a href="agent-studio.html" class="btn btn-ghost btn-sm">Open Studio <i class="fas fa-arrow-right"></i></a>
           </div>
-          <div class="section-sub">Start from a blueprint</div>
           <div class="card-row">
             <div class="blueprint-card" onclick="navigateTo('agent-studio.html')"><i class="fas fa-brain"></i><p>RAG Agent</p><span class="text-xs text-muted">Retrieval-augmented</span></div>
             <div class="blueprint-card" onclick="navigateTo('agent-studio.html')"><i class="fas fa-check-double"></i><p>Approval Flow</p><span class="text-xs text-muted">Human-in-the-loop</span></div>
             <div class="blueprint-card" onclick="navigateTo('agent-studio.html')"><i class="fas fa-project-diagram"></i><p>Multi-Agent</p><span class="text-xs text-muted">Orchestrated pipeline</span></div>
-          </div>
-          <div class="section-sub" style="margin-top:16px">Publication Readiness</div>
-          <div class="readiness-score">
-            <div class="readiness-ring" style="background:conic-gradient(var(--ey-green) 0% 72%, var(--card-border) 72% 100%)"><span style="background:var(--card-bg);width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center">72%</span></div>
-            <div class="readiness-items">
-              <div class="readiness-item"><i class="fas fa-check-circle"></i> Security scan passed</div>
-              <div class="readiness-item"><i class="fas fa-check-circle"></i> Metadata complete</div>
-              <div class="readiness-item"><i class="fas fa-exclamation-circle"></i> Evaluation coverage: 68%</div>
-              <div class="readiness-item"><i class="fas fa-times-circle"></i> Missing: output schema docs</div>
-            </div>
           </div>
         </div>
 
@@ -166,31 +131,50 @@
             <div class="section-title"><div class="section-icon extend"><i class="fas fa-plug"></i></div><div><h3>Extend</h3><span class="text-xs text-muted">Connectors & MCP</span></div></div>
           </div>
           <div class="card-row">
-            <div class="connector-card" onclick="navigateToAsset('sharepoint')"><div class="connector-icon"><i class="fab fa-microsoft"></i></div><div class="connector-info"><h4>SharePoint Connector</h4><p>Document retrieval</p></div><span class="chip chip-green">Active</span></div>
-            <div class="connector-card" onclick="navigateToAsset('outlook')"><div class="connector-icon"><i class="fas fa-envelope"></i></div><div class="connector-info"><h4>Outlook Connector</h4><p>Email summarization</p></div><span class="chip chip-green">Active</span></div>
-            <div class="connector-card"><div class="connector-icon" style="background:var(--chip-bg);color:var(--ey-gray-500)"><i class="fas fa-plus"></i></div><div class="connector-info"><h4>Request Connector</h4><p>Submit a new request</p></div></div>
+            <div class="connector-card" onclick="navigateToAsset('sharepoint')"><div class="connector-icon"><i class="fab fa-microsoft"></i></div><div class="connector-info"><h4>SharePoint</h4><p>Document retrieval</p></div><span class="chip chip-green">Active</span></div>
+            <div class="connector-card" onclick="navigateToAsset('outlook')"><div class="connector-icon"><i class="fas fa-envelope"></i></div><div class="connector-info"><h4>Outlook</h4><p>Email summarization</p></div><span class="chip chip-green">Active</span></div>
+            <div class="connector-card"><div class="connector-icon" style="background:var(--chip-bg);color:var(--ey-gray-500)"><i class="fas fa-plus"></i></div><div class="connector-info"><h4>Request Connector</h4><p>Submit a request</p></div></div>
           </div>
         </div>
       </div>
 
-      <!-- Right Rail -->
+      <!-- Right Rail: Workspaces Panel -->
       <aside class="right-rail">
-        <!-- Your Workspaces Quick List -->
+        <!-- Available Workspaces -->
         <div class="card">
           <div class="card-header"><h3><i class="fas fa-folder" style="margin-right:6px;color:var(--ey-blue)"></i> Your Workspaces</h3></div>
           <div class="card-body" id="rail-workspaces"></div>
         </div>
+
+        <!-- Recent Workspaces (cards) -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-clock" style="margin-right:6px;color:var(--ey-gray-500)"></i> Recent Workspaces</h3>
+            <select class="form-select" style="width:auto;padding:2px 6px;font-size:0.714rem" id="ws-sort" onchange="renderRecentWsCards()">
+              <option value="recent">Recent</option>
+              <option value="name">Name</option>
+              <option value="budget">Budget</option>
+            </select>
+          </div>
+          <div class="card-body" id="recent-ws-cards" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+
+        <!-- Approvals -->
         <div class="card">
           <div class="card-header"><h3><i class="fas fa-tasks" style="margin-right:6px;color:var(--ey-blue)"></i> Approvals</h3><a href="approvals.html" class="btn btn-ghost btn-sm">View all</a></div>
           <div class="card-body" id="rail-approvals"></div>
         </div>
+
+        <!-- Budget -->
         <div class="card">
           <div class="card-header"><h3><i class="fas fa-chart-line" style="margin-right:6px;color:var(--ey-green)"></i> Budget</h3><a href="budgets.html" class="btn btn-ghost btn-sm">Details</a></div>
           <div class="card-body" id="budget-widget"></div>
         </div>
+
+        <!-- Migration Banner -->
         <div class="card" id="migration-banner">
           <div class="card-body" style="background:var(--badge-warning-bg);border-radius:var(--radius-md)">
-            <div style="display:flex;align-items:start;gap:10px"><i class="fas fa-exclamation-triangle" style="color:var(--ey-orange);margin-top:2px"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-orange)">Legacy Workspace Migration</div><p class="text-sm" style="margin-top:4px">Standard workspaces will require an engagement code by June 30, 2026.</p><button class="btn btn-sm btn-secondary" style="margin-top:8px" onclick="openWorkspaceModal()">Add Engagement Code</button></div></div>
+            <div style="display:flex;align-items:start;gap:10px"><i class="fas fa-exclamation-triangle" style="color:var(--ey-orange);margin-top:2px"></i><div><div style="font-weight:600;font-size:0.857rem;color:var(--ey-orange)">Legacy Workspace Migration</div><p class="text-sm" style="margin-top:4px">Standard workspaces require an engagement code by June 30, 2026.</p><button class="btn btn-sm btn-secondary" style="margin-top:8px" onclick="openWorkspaceModal()">Add Engagement Code</button></div></div>
           </div>
         </div>
       </aside>
@@ -290,7 +274,6 @@ function renderMiniRoleGrid() {
       <span class="mini-role-name">${r.name}</span>
     </div>`).join('');
 }
-
 function selectFinderRole(roleId) {
   if (finderSelectedRole === roleId) { clearFinderRole(); return; }
   finderSelectedRole = roleId;
@@ -299,14 +282,12 @@ function selectFinderRole(roleId) {
   renderFinderTasks();
   show($('#finder-tasks-area'));
 }
-
 function clearFinderRole() {
   finderSelectedRole = null;
   finderSelectedTasks = [];
   renderMiniRoleGrid();
   hide($('#finder-tasks-area'));
 }
-
 function renderFinderTasks() {
   const container = $('#finder-task-chips');
   const label = $('#finder-role-label');
@@ -317,7 +298,6 @@ function renderFinderTasks() {
   container.innerHTML = tasks.map(t => `<div class="task-chip ${finderSelectedTasks.includes(t) ? 'selected' : ''}" onclick="toggleFinderTask(this,'${t}')">${t}</div>`).join('');
   updateFinderTaskCount();
 }
-
 function toggleFinderTask(el, task) {
   const idx = finderSelectedTasks.indexOf(task);
   if (idx >= 0) finderSelectedTasks.splice(idx, 1);
@@ -334,7 +314,6 @@ function updateFinderCharCount() {
   const counter = $('#finder-char-count');
   if (input && counter) counter.textContent = input.value.length;
 }
-
 function submitFinderSearch() {
   const query = $('#finder-input')?.value.trim();
   if (!query && !finderSelectedRole && !finderSelectedTasks.length) return;
@@ -351,20 +330,21 @@ function submitFinderSearch() {
 }
 function closeResultsTray() { const t = $('#results-tray'); if (t) t.classList.remove('open'); }
 
+/* Quick Actions - rendered as compact buttons in top-right area */
 function renderQuickActions() {
   const container = $('#quick-actions');
   if (!container) return;
   let html = '';
   if (isAdmin()) {
-    html += `<div class="qa-card" onclick="openWorkspaceModal()"><div class="qa-icon workspace"><i class="fas fa-layer-group"></i></div><div class="qa-text"><h4>Create Workspace</h4><p>Link your engagement code</p></div></div>`;
+    html += `<button class="btn btn-primary btn-sm" onclick="openWorkspaceModal()"><i class="fas fa-layer-group"></i> Create Workspace</button>`;
   }
-  html += `<div class="qa-card" onclick="navigateTo('finder.html')"><div class="qa-icon find"><i class="fas fa-search"></i></div><div class="qa-text"><h4>Find AI Tools</h4><p>Discover agents, datasets, roleplays</p></div></div>`;
-  html += `<div class="qa-card" onclick="navigateTo('agent-studio.html')"><div class="qa-icon agent"><i class="fas fa-robot"></i></div><div class="qa-text"><h4>Create Agent</h4><p>Start from a blueprint</p></div></div>`;
-  html += `<div class="qa-card" onclick="alert('Roleplay creator...')"><div class="qa-icon roleplay"><i class="fas fa-comments"></i></div><div class="qa-text"><h4>Create Roleplay</h4><p>Scenario-based practice</p></div></div>`;
-  html += `<div class="qa-card" onclick="alert('Opening M365 Copilot...')"><div class="qa-icon copilot"><i class="fab fa-microsoft"></i></div><div class="qa-text"><h4>Open M365 Copilot</h4><p>For general questions</p></div></div>`;
+  html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('agent-studio.html')"><i class="fas fa-robot"></i> Create Agent</button>`;
+  html += `<button class="btn btn-secondary btn-sm" onclick="alert('Roleplay creator...')"><i class="fas fa-comments"></i> Create Roleplay</button>`;
+  html += `<button class="btn btn-secondary btn-sm" onclick="alert('Opening M365 Copilot...')"><i class="fab fa-microsoft"></i> M365 Copilot</button>`;
   container.innerHTML = html;
 }
 
+/* Right-rail: Available Workspaces list */
 function renderRailWorkspaces() {
   const container = $('#rail-workspaces');
   if (!container) return;
@@ -379,50 +359,33 @@ function renderRailWorkspaces() {
   }).join('');
 }
 
-function renderFavoritesRail() {
-  const rail = $('#favorites-rail');
-  if (!rail) return;
-  const favAssets = getAllAssets().filter(a => isFavorite(a.id));
-  if (!favAssets.length) { rail.innerHTML = '<p class="text-sm text-muted">Star assets to add them here.</p>'; return; }
-  rail.innerHTML = favAssets.map(a => `
-    <div class="fav-card" onclick="navigateToAsset('${a.id}')">
-      <i class="fas fa-star fav-star" onclick="event.stopPropagation();toggleFavorite('${a.id}')"></i>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <div class="asset-type-icon ${typeClass(a.type)}" style="width:22px;height:22px;font-size:10px"><i class="fas ${typeIcon(a.type)}"></i></div>
-        <span class="text-xs" style="color:var(--ey-gray-500)">${a.type}</span>
-      </div>
-      <div style="font-weight:600;font-size:0.857rem;margin-bottom:4px">${a.name}</div>
-      <div style="display:flex;gap:4px">
-        ${pricingBadge(a.pricing, a.cost)}
-      </div>
-    </div>`).join('');
-}
-
-function renderWorkspaceTiles() {
-  const container = $('#ws-tiles');
+/* Right-rail: Recent Workspaces as cards */
+function renderRecentWsCards() {
+  const container = $('#recent-ws-cards');
   if (!container) return;
   let wsList = [WORKSPACES.acme, WORKSPACES.globo, WORKSPACES.retail];
   const sort = $('#ws-sort')?.value || 'recent';
   if (sort === 'name') wsList.sort((a,b) => a.name.localeCompare(b.name));
   else if (sort === 'budget') wsList.sort((a,b) => (b.pct||0) - (a.pct||0));
   container.innerHTML = wsList.map(ws => {
-    const rolePill = ws.role ? `<span class="chip chip-${ws.role==='Admin'?'blue':ws.role==='Editor'?'green':'default'}">${ws.role}</span>` : '';
-    const avatars = (ws.participants||[]).slice(0,3).map(p => `<div class="avatar" title="${p.n}">${p.i}</div>`).join('');
-    const agentChips = (ws.agents||[]).slice(0,2).map(a => `<span class="chip chip-default" style="font-size:9px">${a}</span>`).join('');
-    const budgetBar = ws.budget ? `<div class="ws-tile-budget"><div class="progress-bar" style="height:4px"><div class="progress-fill ${ws.pct > 75 ? 'orange' : 'green'}" style="width:${ws.pct}%"></div></div><div class="text-xs text-muted" style="margin-top:2px">${ws.pct}% of $${(ws.budget/1000).toFixed(0)}k</div></div>` : '';
-    return `<div class="ws-tile" onclick="window.location.href='workspace-home.html?ws=${ws.id}'">
-      <div class="ws-tile-header"><div class="ws-tile-name">${ws.name}</div>${rolePill}</div>
-      <div class="ws-tile-desc">${ws.desc || ''}</div>
-      <div class="ws-tile-meta">
-        <span class="chip chip-${ws.status==='approved'?'green':'orange'}" style="font-size:9px">${ws.engCode}</span>
+    const rolePill = ws.role ? `<span class="chip chip-${ws.role==='Admin'?'blue':ws.role==='Editor'?'green':'default'}" style="font-size:9px">${ws.role}</span>` : '';
+    const avatars = (ws.participants||[]).slice(0,3).map(p => `<div class="avatar" style="width:20px;height:20px;font-size:8px;margin-left:-4px;border:2px solid var(--card-bg)" title="${p.n}">${p.i}</div>`).join('');
+    const budgetBar = ws.budget ? `<div style="margin-top:6px"><div class="progress-bar" style="height:3px"><div class="progress-fill ${ws.pct > 75 ? 'orange' : 'green'}" style="width:${ws.pct}%"></div></div><div class="text-xs text-muted" style="margin-top:2px">${ws.pct}% of $${(ws.budget/1000).toFixed(0)}k</div></div>` : '';
+    return `<a href="workspace-home.html?ws=${ws.id}" style="display:block;padding:10px;border:1px solid var(--card-border);border-radius:var(--radius-md);text-decoration:none;color:inherit;transition:all var(--transition)" onmouseover="this.style.borderColor='var(--btn-secondary-border)'" onmouseout="this.style.borderColor='var(--card-border)'">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-weight:600;font-size:0.857rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">${ws.name}</div>
+        ${rolePill}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <span class="chip chip-${ws.status==='approved'?'green':'orange'}" style="font-size:8px;padding:1px 6px">${ws.engCode}</span>
         <span class="text-xs text-muted"><i class="fas fa-clock"></i> ${ws.lastActivity || 'N/A'}</span>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div class="ws-tile-avatars">${avatars}</div>
-        <div class="ws-tile-agents">${agentChips}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="display:flex;align-items:center">${avatars}</div>
+        ${(ws.agents||[]).slice(0,1).map(a => `<span class="chip chip-default" style="font-size:8px;padding:1px 6px">${a}</span>`).join('')}
       </div>
       ${budgetBar}
-    </div>`;
+    </a>`;
   }).join('');
 }
 
@@ -440,18 +403,18 @@ function renderRailApprovals() {
   container.innerHTML = `
     <div style="display:flex;align-items:start;gap:10px;padding:8px 0;border-bottom:1px solid var(--card-border)">
       <div class="approval-icon access"><i class="fas fa-key"></i></div>
-      <div style="flex:1"><p style="font-size:0.857rem"><strong>Sarah Kim</strong> requests workspace access</p><div class="text-xs text-muted">2h ago</div><div style="display:flex;gap:4px;margin-top:4px"><button class="btn btn-sm btn-primary" onclick="alert('Approved')">Approve</button><button class="btn btn-sm btn-secondary" onclick="alert('Denied')">Deny</button></div></div>
+      <div style="flex:1"><p style="font-size:0.857rem"><strong>Sarah Kim</strong> requests workspace access</p><div class="text-xs text-muted">2h ago</div></div>
     </div>
     <div style="display:flex;align-items:start;gap:10px;padding:8px 0">
       <div class="approval-icon" style="background:var(--badge-success-bg);color:var(--ey-green)"><i class="fas fa-plus"></i></div>
-      <div style="flex:1"><p style="font-size:0.857rem"><strong>David Brown</strong> requests asset addition</p><div class="text-xs text-muted">1d ago &bull; RFP Draft Agent → GloboCo</div></div>
+      <div style="flex:1"><p style="font-size:0.857rem"><strong>David Brown</strong> requests asset addition</p><div class="text-xs text-muted">1d ago</div></div>
     </div>`;
 }
 
 function renderBudgetWidget() {
   const widget = $('#budget-widget');
   if (!widget) return;
-  widget.innerHTML = `<div><div style="display:flex;justify-content:space-between;font-size:0.857rem;margin-bottom:6px"><span style="font-weight:600">ACME Retail RFP Team</span><span>$10.5k / $25k</span></div><div class="progress-bar"><div class="progress-fill green" style="width:42%"></div></div><div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--chip-bg);border-radius:var(--radius-sm);margin-top:8px;font-size:0.857rem;color:var(--ey-gray-600)"><i class="fas fa-chart-line" style="color:var(--ey-blue)"></i> $2.1k forecast next 7 days</div></div>`;
+  widget.innerHTML = `<div><div style="display:flex;justify-content:space-between;font-size:0.857rem;margin-bottom:6px"><span style="font-weight:600">ACME Retail RFP</span><span>$10.5k / $25k</span></div><div class="progress-bar"><div class="progress-fill green" style="width:42%"></div></div><div style="display:flex;align-items:center;gap:6px;padding:6px;background:var(--chip-bg);border-radius:var(--radius-sm);margin-top:6px;font-size:0.786rem;color:var(--ey-gray-600)"><i class="fas fa-chart-line" style="color:var(--ey-blue)"></i> $2.1k forecast 7d</div></div>`;
 }
 
 function updateProfileTasks() {
@@ -473,8 +436,7 @@ function updatePageUI() {
   renderMiniRoleGrid();
   renderQuickActions();
   renderRailWorkspaces();
-  renderFavoritesRail();
-  renderWorkspaceTiles();
+  renderRecentWsCards();
   renderControlSection();
   renderRailApprovals();
   renderBudgetWidget();
