@@ -68,13 +68,8 @@
           </div>
         </div>
 
-        <!-- V1: Link to full Wizard -->
-        <div id="v1-finder-link" class="hidden" style="margin-top:14px">
-          <a href="finder.html" class="btn btn-secondary"><i class="fas fa-magic"></i> Open full Finder Wizard (5 steps)</a>
-        </div>
-
-        <!-- V2/V3: Role cards + Task chips inline -->
-        <div id="v2v3-finder-inline" class="hidden">
+        <!-- Role cards + Task chips inline (all versions) -->
+        <div id="finder-inline">
           <div style="margin-top:16px">
             <div style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px">Or choose your role to see suggested tasks</div>
             <div class="mini-role-grid" id="mini-role-grid"></div>
@@ -419,20 +414,9 @@ function renderQuickActions() {
 
 /* ---- Version-specific Finder visibility ---- */
 function updateFinderVisibility() {
-  const v1Link = $('#v1-finder-link');
-  const v2v3Inline = $('#v2v3-finder-inline');
   const v3Prompt = $('#v3-prompt-area');
   const searchBar = $('#finder-search-bar-wrap');
   const v2Results = $('#v2-see-results');
-
-  if (isV1()) {
-    if (v1Link) show(v1Link);
-    if (v2v3Inline) hide(v2v3Inline);
-    if (searchBar) show(searchBar);
-  } else {
-    if (v1Link) hide(v1Link);
-    if (v2v3Inline) show(v2v3Inline);
-  }
 
   if (isV3()) {
     if (v3Prompt) show(v3Prompt);
@@ -440,7 +424,7 @@ function updateFinderVisibility() {
     if (v2Results) hide(v2Results);
   } else {
     if (v3Prompt) hide(v3Prompt);
-    if (!isV1() && searchBar) show(searchBar);
+    if (searchBar) show(searchBar);
     if (v2Results) show(v2Results);
   }
 }
