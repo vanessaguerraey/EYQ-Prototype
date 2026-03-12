@@ -121,8 +121,8 @@
         </div>
       </div>
 
-      <!-- Quick Actions (below the AI Finder) -->
-      <div style="margin-top:16px;padding-bottom:24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="quick-actions"></div>
+      <!-- Quick Actions (below the AI Finder, as cards) -->
+      <div style="margin-top:20px;padding-bottom:24px" id="quick-actions" class="quick-actions"></div>
     </div>
   </section>
 
@@ -394,21 +394,27 @@ function closeResultsTray() { const t = $('#results-tray'); if (t) t.classList.r
 function renderQuickActions() {
   const container = $('#quick-actions');
   if (!container) return;
-  let html = '';
+  let cards = [];
   if (isAdmin()) {
-    html += `<button class="btn btn-primary btn-sm" onclick="openWorkspaceModal()"><i class="fas fa-layer-group"></i> Create Workspace</button>`;
-    html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('agent-studio.html')"><i class="fas fa-robot"></i> Create Agent</button>`;
-    html += `<button class="btn btn-secondary btn-sm" onclick="alert('Roleplay creator...')"><i class="fas fa-comments"></i> Create Roleplay</button>`;
+    cards.push({ icon: 'fa-robot', iconCls: 'agent', label: 'Create Agent', desc: 'Start from a blueprint or build custom', onclick: "navigateTo('agent-studio.html')" });
+    cards.push({ icon: 'fa-layer-group', iconCls: 'workspace', label: 'Create Workspace', desc: 'Link your engagement code', onclick: 'openWorkspaceModal()' });
+    cards.push({ icon: 'fa-comments', iconCls: 'roleplay', label: 'Create Roleplay', desc: 'Scenario-based practice sessions', onclick: "alert('Roleplay creator...')" });
+    cards.push({ icon: 'fa-search', iconCls: 'find', label: 'Find AI Tools', desc: 'Discover assets for your work', onclick: "navigateTo('finder.html')" });
     if (isV2() || isV3()) {
-      html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('approvals.html')"><i class="fas fa-check-circle"></i> Approvals</button>`;
-      html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('budgets.html')"><i class="fas fa-chart-bar"></i> Set Budgets</button>`;
+      cards.push({ icon: 'fa-check-circle', iconCls: 'workspace', label: 'Approvals', desc: 'Review pending requests', onclick: "navigateTo('approvals.html')" });
     }
   } else {
-    html += `<button class="btn btn-secondary btn-sm" onclick="alert('Join workspace flow...')"><i class="fas fa-sign-in-alt"></i> Join a Workspace</button>`;
-    html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('agent-studio.html')"><i class="fas fa-robot"></i> Create Agent</button>`;
+    cards.push({ icon: 'fa-search', iconCls: 'find', label: 'Find AI Tools', desc: 'Discover assets for your work', onclick: "navigateTo('finder.html')" });
+    cards.push({ icon: 'fa-sign-in-alt', iconCls: 'workspace', label: 'Join a Workspace', desc: 'Request access to a team workspace', onclick: "alert('Join workspace flow...')" });
+    cards.push({ icon: 'fa-robot', iconCls: 'agent', label: 'Create Agent', desc: 'Start from a blueprint or build custom', onclick: "navigateTo('agent-studio.html')" });
   }
-  html += `<button class="btn btn-secondary btn-sm" onclick="alert('Opening M365 Copilot...')"><i class="fab fa-microsoft"></i> M365 Copilot</button>`;
-  container.innerHTML = html;
+  cards.push({ icon: 'fa-microsoft', iconCls: 'copilot', label: 'M365 Copilot', desc: 'General questions & productivity', onclick: "alert('Opening M365 Copilot...')", fab: true });
+
+  container.innerHTML = cards.map(c => `
+    <div class="qa-card" onclick="${c.onclick}">
+      <div class="qa-icon ${c.iconCls}"><i class="${c.fab ? 'fab' : 'fas'} ${c.icon}"></i></div>
+      <div class="qa-text"><h4>${c.label}</h4><p>${c.desc}</p></div>
+    </div>`).join('');
 }
 
 /* ---- Version-specific Finder visibility ---- */
