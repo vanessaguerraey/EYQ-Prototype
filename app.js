@@ -1,10 +1,12 @@
 /* ========================================================================
    EYQ Prototype — Shared Application Logic
+   Three-version comparison: V1 Baseline, V2 Role-based Home, V3 Prompt Builder
    ======================================================================== */
 
 const STATE = {
+  version: 'v2',          // 'v1', 'v2', 'v3'
   role: 'admin',           // 'admin' or 'contributor'
-  workspace: 'private',
+  workspace: 'approved',
   tenantPolicy: 'selfserve',
   pricingState: 'estimated',
   datasetApproved: true,
@@ -17,7 +19,19 @@ const STATE = {
     name: 'Alex Morgan', initials: 'AM', role: 'Consultant',
     serviceLine: 'Consulting', email: 'alex.morgan@ey.com',
     tasks: ['Draft proposal', 'Compile credentials', 'Summarize client materials']
-  }
+  },
+  versionStates: { v1: {}, v2: {}, v3: {} }
+};
+
+const VERSION_LABELS = {
+  v1: 'V1 — Baseline',
+  v2: 'V2 — Role-based Home',
+  v3: 'V3 — Prompt Builder'
+};
+const VERSION_TOOLTIPS = {
+  v1: 'Wizard-first Finder with Risk tags on results',
+  v2: 'Role-based Home (Admin/Contributor) with Match % on results, no Risk',
+  v3: 'Prompt Builder + AI Improver with Match % on results, no Risk'
 };
 
 const WORKSPACES = {
@@ -35,23 +49,23 @@ const ENGAGEMENT_CODES = {
 
 const ASSETS = {
   agents: [
-    { id: 'rfp-draft', type: 'Agent', name: 'RFP Draft Agent', desc: 'Generates proposal drafts using EY RFP templates and credentials dataset.', template: 'RFP v7', risk: 'Low', pricing: 'estimated', cost: '$2.40/run', rating: 4.6, reviews: 128, requiresWorkspace: true, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['Matches your "Draft proposal" task','Aligned to Consulting service line','Used by 3 members of your team this week'], govFit: 'good' },
-    { id: 'controls-packager', type: 'Agent', name: 'Controls Evidence Packager', desc: 'Bundles walkthrough notes and artifacts into evidence packs.', template: 'Controls Walkthrough v3', risk: 'Medium', pricing: 'estimated', cost: '$3.80/run', rating: 4.3, reviews: 87, requiresWorkspace: true, requiresDataset: true, teamUsed: false, isNew: false, whyReasons: ['Aligned to Assurance methodology','Requires Medium-risk dataset access'], govFit: 'review' },
-    { id: 'policy-qa', type: 'Agent', name: 'Policy Q&A Agent', desc: 'Answers internal policy questions grounded in EY policies dataset.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.8, reviews: 342, requiresWorkspace: false, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['Free to use in any workspace','Top-rated by Consulting users','No dataset approval needed'], govFit: 'good' },
-    { id: 'client-intake', type: 'Agent', name: 'Client Intake Agent', desc: 'Automates new client onboarding questionnaires and risk assessment.', template: null, risk: 'Low', pricing: 'estimated', cost: '$1.80/run', rating: 4.1, reviews: 45, requiresWorkspace: true, requiresDataset: false, teamUsed: false, isNew: true, whyReasons: ['New agent for client onboarding','Low risk, easy to adopt'], govFit: 'good' }
+    { id: 'rfp-draft', type: 'Agent', name: 'RFP Draft Agent', desc: 'Generates proposal drafts using EY RFP templates and credentials dataset.', template: 'RFP v7', risk: 'Low', pricing: 'estimated', cost: '$2.40/run', rating: 4.6, reviews: 128, requiresWorkspace: true, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['Matches your "Draft proposal" task','Aligned to Consulting service line','Used by 3 members of your team this week'], govFit: 'good', matchRoles: ['consultant','analyst','manager'], matchTasks: ['Draft proposal','Compile credentials','Draft client deck'] },
+    { id: 'controls-packager', type: 'Agent', name: 'Controls Evidence Packager', desc: 'Bundles walkthrough notes and artifacts into evidence packs.', template: 'Controls Walkthrough v3', risk: 'Medium', pricing: 'estimated', cost: '$3.80/run', rating: 4.3, reviews: 87, requiresWorkspace: true, requiresDataset: true, teamUsed: false, isNew: false, whyReasons: ['Aligned to Assurance methodology','Requires Medium-risk dataset access'], govFit: 'review', matchRoles: ['accountant','steward'], matchTasks: ['Create evidence package','Reconciliation check'] },
+    { id: 'policy-qa', type: 'Agent', name: 'Policy Q&A Agent', desc: 'Answers internal policy questions grounded in EY policies dataset.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.8, reviews: 342, requiresWorkspace: false, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['Free to use in any workspace','Top-rated by Consulting users','No dataset approval needed'], govFit: 'good', matchRoles: ['consultant','analyst','accountant','manager','security'], matchTasks: ['Policy Q&A','Compliance review','Research analysis'] },
+    { id: 'client-intake', type: 'Agent', name: 'Client Intake Agent', desc: 'Automates new client onboarding questionnaires and risk assessment.', template: null, risk: 'Low', pricing: 'estimated', cost: '$1.80/run', rating: 4.1, reviews: 45, requiresWorkspace: true, requiresDataset: false, teamUsed: false, isNew: true, whyReasons: ['New agent for client onboarding','Low risk, easy to adopt'], govFit: 'good', matchRoles: ['consultant','manager','hiring'], matchTasks: ['Client pitch prep','Onboarding prep'] }
   ],
   roleplays: [
-    { id: 'client-pitch', type: 'Roleplay', name: 'Client Pitch Roleplay', desc: 'Practice a skeptical stakeholder meeting aligned to EY pitch rubric.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.5, reviews: 215, requiresWorkspace: false, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['Free practice tool','Matches "Summarize client materials" task'], govFit: 'good' },
-    { id: 'controls-walkthrough', type: 'Roleplay', name: 'Controls Walkthrough Roleplay', desc: 'Simulate control owner interviews; scoring against EY methodology.', template: 'Controls Walkthrough v3', risk: 'Medium', pricing: 'estimated', cost: '$1.60/run', rating: 4.4, reviews: 93, requiresWorkspace: true, requiresDataset: false, teamUsed: false, isNew: false, whyReasons: ['Aligned to Controls methodology','Team training tool'], govFit: 'review' }
+    { id: 'client-pitch', type: 'Roleplay', name: 'Client Pitch Roleplay', desc: 'Practice a skeptical stakeholder meeting aligned to EY pitch rubric.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.5, reviews: 215, requiresWorkspace: false, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['Free practice tool','Matches "Summarize client materials" task'], govFit: 'good', matchRoles: ['consultant','manager','analyst'], matchTasks: ['Client pitch prep','Summarize client materials','Draft proposal'] },
+    { id: 'controls-walkthrough', type: 'Roleplay', name: 'Controls Walkthrough Roleplay', desc: 'Simulate control owner interviews; scoring against EY methodology.', template: 'Controls Walkthrough v3', risk: 'Medium', pricing: 'estimated', cost: '$1.60/run', rating: 4.4, reviews: 93, requiresWorkspace: true, requiresDataset: false, teamUsed: false, isNew: false, whyReasons: ['Aligned to Controls methodology','Team training tool'], govFit: 'review', matchRoles: ['accountant','steward','security'], matchTasks: ['Create evidence package','Audit prep','Compliance review'] }
   ],
   datasets: [
-    { id: 'credentials-repo', type: 'Dataset', name: 'EY Credentials Repository', desc: 'Service line/sector tagged portfolio; masked client identifiers; RLS by engagement.', template: null, risk: 'Medium', pricing: 'tbd', cost: 'Cost TBD', rating: 4.2, reviews: 56, requiresWorkspace: true, requiresDataset: true, teamUsed: false, isNew: false, whyReasons: ['Essential for proposal drafting','RLS-protected by engagement'], govFit: 'review' },
-    { id: 'policy-library', type: 'Dataset', name: 'Policy & Methodology Library', desc: 'EY policies and methods; sensitivity labeled; legal hold enabled.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.7, reviews: 189, requiresWorkspace: false, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['Official policy source','No restrictions'], govFit: 'good' }
+    { id: 'credentials-repo', type: 'Dataset', name: 'EY Credentials Repository', desc: 'Service line/sector tagged portfolio; masked client identifiers; RLS by engagement.', template: null, risk: 'Medium', pricing: 'tbd', cost: 'Cost TBD', rating: 4.2, reviews: 56, requiresWorkspace: true, requiresDataset: true, teamUsed: false, isNew: false, whyReasons: ['Essential for proposal drafting','RLS-protected by engagement'], govFit: 'review', matchRoles: ['consultant','analyst','manager'], matchTasks: ['Compile credentials','Draft proposal','Research analysis'] },
+    { id: 'policy-library', type: 'Dataset', name: 'Policy & Methodology Library', desc: 'EY policies and methods; sensitivity labeled; legal hold enabled.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.7, reviews: 189, requiresWorkspace: false, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['Official policy source','No restrictions'], govFit: 'good', matchRoles: ['consultant','analyst','accountant','security','steward'], matchTasks: ['Policy Q&A','Compliance review','Research analysis'] }
   ],
   mcp: [
-    { id: 'sharepoint', type: 'MCP', name: 'SharePoint Connector', desc: 'Document retrieval/export for EY Tenant.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.6, reviews: 203, requiresWorkspace: false, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['EY-approved connector','Pre-configured for governance'], govFit: 'good' },
-    { id: 'outlook', type: 'MCP', name: 'Outlook Connector', desc: 'Email summarization for EY Tenant.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.4, reviews: 167, requiresWorkspace: false, requiresDataset: false, teamUsed: false, isNew: false, whyReasons: ['Email integration','Low risk'], govFit: 'good' },
-    { id: 'teams-connector', type: 'MCP', name: 'Teams Connector', desc: 'Meeting summaries and action items extraction.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 0, reviews: 0, requiresWorkspace: true, requiresDataset: false, teamUsed: false, isNew: true, whyReasons: ['New connector','Meeting productivity'], govFit: 'good' }
+    { id: 'sharepoint', type: 'MCP', name: 'SharePoint Connector', desc: 'Document retrieval/export for EY Tenant.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.6, reviews: 203, requiresWorkspace: false, requiresDataset: false, teamUsed: true, isNew: false, whyReasons: ['EY-approved connector','Pre-configured for governance'], govFit: 'good', matchRoles: ['consultant','analyst','developer','data-analyst'], matchTasks: ['Summarize docs','Connect dataset','API integration'] },
+    { id: 'outlook', type: 'MCP', name: 'Outlook Connector', desc: 'Email summarization for EY Tenant.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 4.4, reviews: 167, requiresWorkspace: false, requiresDataset: false, teamUsed: false, isNew: false, whyReasons: ['Email integration','Low risk'], govFit: 'good', matchRoles: ['consultant','analyst','manager'], matchTasks: ['Summarize docs','Research analysis'] },
+    { id: 'teams-connector', type: 'MCP', name: 'Teams Connector', desc: 'Meeting summaries and action items extraction.', template: null, risk: 'Low', pricing: 'free', cost: 'Free', rating: 0, reviews: 0, requiresWorkspace: true, requiresDataset: false, teamUsed: false, isNew: true, whyReasons: ['New connector','Meeting productivity'], govFit: 'good', matchRoles: ['manager','consultant','analyst'], matchTasks: ['Summarize docs','Team analytics'] }
   ]
 };
 
@@ -72,6 +86,9 @@ const SERVICE_LINES = ['Fabric', 'Assurance', 'Tax', 'Consulting', 'Strategy and
 
 /* ---- Helpers ---- */
 function isAdmin() { return STATE.role === 'admin'; }
+function isV1() { return STATE.version === 'v1'; }
+function isV2() { return STATE.version === 'v2'; }
+function isV3() { return STATE.version === 'v3'; }
 function getActiveWorkspace() {
   if (STATE.workspace === 'private') return WORKSPACES.private;
   if (STATE.workspace === 'approved') return WORKSPACES.acme;
@@ -129,10 +146,52 @@ function govFitBadge(fit) {
   return `<span class="governance-fit ${cls}"><i class="fas fa-shield-alt"></i> ${label}</span>`;
 }
 
-/* ---- Asset Card (no Run; role-aware CTA) ---- */
-function renderAssetCard(asset, showWhy) {
+/* ---- Match Percentage Calculation ---- */
+function calcMatchPct(asset, selectedRoles, selectedTasks, selectedSL) {
+  let score = 0; let factors = 0;
+  if (selectedRoles && selectedRoles.length) {
+    factors += 40;
+    const overlap = selectedRoles.filter(r => (asset.matchRoles || []).includes(r)).length;
+    score += (overlap / selectedRoles.length) * 40;
+  }
+  if (selectedTasks && selectedTasks.length) {
+    factors += 40;
+    const overlap = selectedTasks.filter(t => (asset.matchTasks || []).includes(t)).length;
+    score += (overlap / selectedTasks.length) * 40;
+  }
+  if (selectedSL) {
+    factors += 20;
+    const slLower = selectedSL.toLowerCase();
+    const assetDesc = (asset.desc + ' ' + (asset.template || '')).toLowerCase();
+    if (assetDesc.includes(slLower) || slLower === 'consulting') score += 20;
+    else score += 8;
+  }
+  if (!factors) return Math.floor(60 + Math.random() * 30);
+  return Math.min(99, Math.max(40, Math.floor((score / factors) * 100)));
+}
+
+function matchBadge(pct) {
+  const cls = pct >= 80 ? 'badge-match-high' : pct >= 60 ? 'badge-match-med' : 'badge-match-low';
+  return `<span class="badge-match ${cls}">Match ${pct}%</span>`;
+}
+
+/* ---- Asset Card (version-aware) ---- */
+function renderAssetCard(asset, showWhy, matchCtx) {
   const favIcon = isFavorite(asset.id) ? 'fas fa-star' : 'far fa-star';
   const newBadge = asset.isNew ? '<span class="new-badge">New</span>' : '';
+
+  const showRisk = isV1();
+  const showMatch = !isV1();
+
+  let matchHtml = '';
+  if (showMatch && matchCtx) {
+    const pct = calcMatchPct(asset, matchCtx.roles, matchCtx.tasks, matchCtx.serviceLine);
+    matchHtml = matchBadge(pct);
+  } else if (showMatch) {
+    const pct = calcMatchPct(asset, [STATE.currentUser.role.toLowerCase()], STATE.currentUser.tasks, STATE.currentUser.serviceLine);
+    matchHtml = matchBadge(pct);
+  }
+
   const whyHtml = (showWhy !== false && asset.whyReasons) ? `
     <div class="why-reasons">
       <div class="why-label">Why this result</div>
@@ -148,6 +207,7 @@ function renderAssetCard(asset, showWhy) {
       <div class="asset-card-top">
         <div class="asset-type-icon ${typeClass(asset.type)}"><i class="fas ${typeIcon(asset.type)}"></i></div>
         <div style="display:flex;align-items:center;gap:6px">
+          ${matchHtml}
           ${asset.teamUsed ? '<span class="text-xs text-muted"><i class="fas fa-users"></i></span>' : ''}
           <i class="${favIcon}" style="color:var(--text-primary);cursor:pointer;font-size:12px" onclick="event.stopPropagation();toggleFavorite('${asset.id}')"></i>
         </div>
@@ -156,7 +216,7 @@ function renderAssetCard(asset, showWhy) {
       <div class="asset-card-desc">${asset.desc}</div>
       <div class="asset-card-badges">
         <span class="badge" style="background:var(--chip-bg);color:var(--ey-gray-600)">${asset.type}</span>
-        ${riskBadge(asset.risk)}
+        ${showRisk ? riskBadge(asset.risk) : ''}
         ${pricingBadge(asset.pricing, asset.cost)}
         ${asset.template ? `<span class="chip chip-default">${asset.template}</span>` : ''}
       </div>
@@ -171,10 +231,25 @@ function renderAssetCard(asset, showWhy) {
           <i class="fas ${isAdmin() ? 'fa-plus' : 'fa-paper-plane'}"></i> ${ctaLabel}
         </button>
         <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();navigateToAsset('${asset.id}')">
-          View details
+          Details
         </button>
       </div>
     </div>`;
+}
+
+/* ---- Version Switcher ---- */
+function setVersion(v) {
+  STATE.version = v;
+  updateVersionSwitcher();
+  updateAllUI();
+}
+
+function updateVersionSwitcher() {
+  const container = $('#version-switcher');
+  if (!container) return;
+  container.innerHTML = ['v1','v2','v3'].map(v =>
+    `<button class="version-btn ${STATE.version === v ? 'active' : ''}" onclick="setVersion('${v}')" title="${VERSION_TOOLTIPS[v]}">${VERSION_LABELS[v]}</button>`
+  ).join('');
 }
 
 /* ---- Add to Workspace Modal (Admin) ---- */
@@ -195,7 +270,7 @@ function openAddToWorkspaceModal(assetId) {
   body.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px;background:var(--chip-bg);border-radius:var(--radius-md)">
       <div class="asset-type-icon ${typeClass(asset.type)}"><i class="fas ${typeIcon(asset.type)}"></i></div>
-      <div><div style="font-weight:600">${asset.name}</div><div class="text-xs text-muted">${asset.type} &bull; ${asset.risk} Risk &bull; ${asset.cost}</div></div>
+      <div><div style="font-weight:600">${asset.name}</div><div class="text-xs text-muted">${asset.type} &bull; ${asset.cost}</div></div>
     </div>
     <div class="form-group"><label>Select existing workspace</label>
     <div style="display:flex;flex-direction:column;gap:8px" id="add-ws-list">
@@ -230,8 +305,8 @@ function confirmAddToWorkspace(assetId) {
   const body = $('#add-ws-body');
   const footer = $('#add-ws-footer');
   const lockedNote = ws.status === 'pending' ? '<div style="padding:10px;background:var(--badge-warning-bg);border-radius:var(--radius-md);margin-top:12px;font-size:0.857rem;color:var(--ey-orange);display:flex;align-items:center;gap:8px"><i class="fas fa-lock"></i> Locked until approval &mdash; workspace is pending. Free assets available now.</div>' : '';
-  body.innerHTML = `<div class="completion-state"><div class="completion-icon approved"><i class="fas fa-check"></i></div><h2>${asset ? asset.name : 'Asset'} added to ${ws.name}</h2><p style="margin-top:8px;color:var(--ey-gray-600)">The asset is now available in the workspace's Assets tab.</p>${lockedNote}</div>`;
-  footer.innerHTML = `<div></div><div style="display:flex;gap:8px"><a href="workspace-home.html?ws=${ws.id}" class="btn btn-primary">Open Workspace</a><button class="btn btn-secondary" onclick="closeModal('add-ws-modal')">Close</button></div>`;
+  body.innerHTML = `<div class="completion-state"><div class="completion-icon approved"><i class="fas fa-check"></i></div><h2>Asset added to ${ws.name}</h2><p style="margin-top:8px;color:var(--ey-gray-600)">The asset is now available in the workspace's Assets tab.</p>${lockedNote}</div>`;
+  footer.innerHTML = `<div></div><div style="display:flex;gap:8px"><a href="workspace-home.html?ws=${ws.id}" class="btn btn-primary"><i class="fas fa-arrow-right"></i> Go to Workspace</a><button class="btn btn-secondary" onclick="closeModal('add-ws-modal')">Close</button></div>`;
   selectedWsForAdd = null;
 }
 
@@ -253,7 +328,7 @@ function openRequestAddModal(assetId) {
   body.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px;background:var(--chip-bg);border-radius:var(--radius-md)">
       <div class="asset-type-icon ${typeClass(asset.type)}"><i class="fas ${typeIcon(asset.type)}"></i></div>
-      <div><div style="font-weight:600">${asset.name}</div><div class="text-xs text-muted">${asset.type} &bull; ${asset.risk} Risk &bull; ${asset.cost}</div></div>
+      <div><div style="font-weight:600">${asset.name}</div><div class="text-xs text-muted">${asset.type} &bull; ${asset.cost}</div></div>
     </div>
     <div class="form-group"><label>Select workspace to request addition</label>
     <div style="display:flex;flex-direction:column;gap:8px" id="request-ws-list">
@@ -293,7 +368,6 @@ function renderLeftNav() {
   const nav = $('.left-nav');
   if (!nav) return;
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-
   nav.innerHTML = `
     <div class="nav-brand">
       <span class="logo-mark" style="width:24px;height:24px;font-size:10px">EY</span>
@@ -301,55 +375,22 @@ function renderLeftNav() {
     </div>
     <div class="nav-group">
       <div class="nav-item ${currentPage === 'index.html' ? 'active' : ''}" data-tooltip="Home">
-        <a class="nav-item-content" href="index.html">
-          <span class="nav-icon"><i class="fas fa-home"></i></span>
-          <span class="nav-label">Home</span>
-        </a>
+        <a class="nav-item-content" href="index.html"><span class="nav-icon"><i class="fas fa-home"></i></span><span class="nav-label">Home</span></a>
       </div>
       <div class="nav-item ${currentPage === 'finder.html' ? 'active' : ''}" data-tooltip="Finder">
-        <a class="nav-item-content" href="finder.html">
-          <span class="nav-icon"><i class="fas fa-search"></i></span>
-          <span class="nav-label">Finder</span>
-        </a>
+        <a class="nav-item-content" href="finder.html"><span class="nav-icon"><i class="fas fa-search"></i></span><span class="nav-label">Finder</span></a>
       </div>
       <div class="nav-item expanded" data-tooltip="Workspaces" onclick="this.classList.toggle('expanded')">
-        <div class="nav-item-content">
-          <span class="nav-icon"><i class="fas fa-folder"></i></span>
-          <span class="nav-label">Workspaces</span>
-          <span class="nav-expand-arrow"><i class="fas fa-chevron-down"></i></span>
-        </div>
+        <div class="nav-item-content"><span class="nav-icon"><i class="fas fa-folder"></i></span><span class="nav-label">Workspaces</span><span class="nav-expand-arrow"><i class="fas fa-chevron-down"></i></span></div>
       </div>
       <div class="nav-children">
-        <div class="nav-item" data-tooltip="My Private">
-          <a class="nav-item-content" href="workspace-home.html?ws=private">
-            <span class="nav-label">My Private</span>
-          </a>
-        </div>
-        <div class="nav-item" data-tooltip="ACME Retail">
-          <a class="nav-item-content" href="workspace-home.html?ws=acme">
-            <span class="nav-label">ACME Retail RFP Team</span>
-            <span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-ACME-2026-001</span>
-          </a>
-        </div>
-        <div class="nav-item" data-tooltip="GloboCo Finance">
-          <a class="nav-item-content" href="workspace-home.html?ws=globo">
-            <span class="nav-label">GloboCo Finance Controls</span>
-            <span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-GLOBO-2026-014</span>
-          </a>
-        </div>
-        <div class="nav-item" data-tooltip="Retail Q2">
-          <a class="nav-item-content" href="workspace-home.html?ws=retail">
-            <span class="nav-label">Retail Q2 Pitch</span>
-            <span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-RETAIL-2026-009 &bull; Pending</span>
-          </a>
-        </div>
+        <div class="nav-item" data-tooltip="My Private"><a class="nav-item-content" href="workspace-home.html?ws=private"><span class="nav-label">My Private</span></a></div>
+        <div class="nav-item" data-tooltip="ACME Retail"><a class="nav-item-content" href="workspace-home.html?ws=acme"><span class="nav-label">ACME Retail RFP Team</span><span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-ACME-2026-001</span></a></div>
+        <div class="nav-item" data-tooltip="GloboCo Finance"><a class="nav-item-content" href="workspace-home.html?ws=globo"><span class="nav-label">GloboCo Finance Controls</span><span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-GLOBO-2026-014</span></a></div>
+        <div class="nav-item" data-tooltip="Retail Q2"><a class="nav-item-content" href="workspace-home.html?ws=retail"><span class="nav-label">Retail Q2 Pitch</span><span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-RETAIL-2026-009 &bull; Pending</span></a></div>
       </div>
       <div class="nav-item expanded" data-tooltip="Assets" onclick="this.classList.toggle('expanded')">
-        <div class="nav-item-content">
-          <span class="nav-icon"><i class="fas fa-th"></i></span>
-          <span class="nav-label">Assets</span>
-          <span class="nav-expand-arrow"><i class="fas fa-chevron-down"></i></span>
-        </div>
+        <div class="nav-item-content"><span class="nav-icon"><i class="fas fa-th"></i></span><span class="nav-label">Assets</span><span class="nav-expand-arrow"><i class="fas fa-chevron-down"></i></span></div>
       </div>
       <div class="nav-children">
         <div class="nav-item"><a class="nav-item-content" href="finder.html?type=agent"><span class="nav-label">Agents</span></a></div>
@@ -358,46 +399,22 @@ function renderLeftNav() {
         <div class="nav-item"><a class="nav-item-content" href="finder.html?type=mcp"><span class="nav-label">MCP/Connectors</span></a></div>
       </div>
       <div class="nav-item ${currentPage === 'agent-studio.html' ? 'active' : ''}" data-tooltip="Agent Studio">
-        <a class="nav-item-content" href="agent-studio.html">
-          <span class="nav-icon"><i class="fas fa-flask"></i></span>
-          <span class="nav-label">Build &mdash; Agent Studio</span>
-        </a>
+        <a class="nav-item-content" href="agent-studio.html"><span class="nav-icon"><i class="fas fa-flask"></i></span><span class="nav-label">Build &mdash; Agent Studio</span></a>
       </div>
       <div class="nav-item ${currentPage === 'approvals.html' ? 'active' : ''}" data-tooltip="Approvals">
-        <a class="nav-item-content" href="approvals.html">
-          <span class="nav-icon"><i class="fas fa-check-circle"></i></span>
-          <span class="nav-label">Approvals</span>
-          <span class="nav-badge">5</span>
-        </a>
+        <a class="nav-item-content" href="approvals.html"><span class="nav-icon"><i class="fas fa-check-circle"></i></span><span class="nav-label">Approvals</span><span class="nav-badge">5</span></a>
       </div>
       <div class="nav-item ${currentPage === 'budgets.html' ? 'active' : ''}" data-tooltip="Budgets & Reporting">
-        <a class="nav-item-content" href="budgets.html">
-          <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>
-          <span class="nav-label">Budgets &amp; Reporting</span>
-          ${STATE.budgetState === 'softcap' ? '<span class="nav-alert-dot"></span>' : ''}
-        </a>
+        <a class="nav-item-content" href="budgets.html"><span class="nav-icon"><i class="fas fa-chart-bar"></i></span><span class="nav-label">Budgets &amp; Reporting</span>${STATE.budgetState === 'softcap' ? '<span class="nav-alert-dot"></span>' : ''}</a>
       </div>
       <div class="nav-item ${currentPage === 'steward.html' ? 'active' : ''}" data-tooltip="Steward Console">
-        <a class="nav-item-content" href="steward.html">
-          <span class="nav-icon"><i class="fas fa-database"></i></span>
-          <span class="nav-label">Steward Console</span>
-        </a>
+        <a class="nav-item-content" href="steward.html"><span class="nav-icon"><i class="fas fa-database"></i></span><span class="nav-label">Steward Console</span></a>
       </div>
     </div>
     <div class="nav-group">
       <div class="nav-group-title">Administration</div>
-      <div class="nav-item" data-tooltip="Admin Settings">
-        <a class="nav-item-content" href="#" onclick="event.preventDefault();openAdminSettings()">
-          <span class="nav-icon"><i class="fas fa-cog"></i></span>
-          <span class="nav-label">Admin Settings</span>
-        </a>
-      </div>
-      <div class="nav-item" data-tooltip="Help & Policies">
-        <a class="nav-item-content" href="#" onclick="event.preventDefault()">
-          <span class="nav-icon"><i class="fas fa-book"></i></span>
-          <span class="nav-label">Help &amp; Policies</span>
-        </a>
-      </div>
+      <div class="nav-item" data-tooltip="Admin Settings"><a class="nav-item-content" href="#" onclick="event.preventDefault();openAdminSettings()"><span class="nav-icon"><i class="fas fa-cog"></i></span><span class="nav-label">Admin Settings</span></a></div>
+      <div class="nav-item" data-tooltip="Help & Policies"><a class="nav-item-content" href="#" onclick="event.preventDefault()"><span class="nav-icon"><i class="fas fa-book"></i></span><span class="nav-label">Help &amp; Policies</span></a></div>
     </div>
     <div class="nav-collapse-btn" onclick="toggleNavCollapse()" role="button" tabindex="0" aria-label="Toggle navigation">
       <span class="nav-icon"><i class="fas fa-${STATE.navCollapsed ? 'chevron-right' : 'chevron-left'}"></i></span>
@@ -415,15 +432,10 @@ function toggleNavCollapse() {
 
 function openAdminSettings() {
   const html = `
-    <div class="form-group">
-      <label>Tenant Policy</label>
+    <div class="form-group"><label>Tenant Policy</label>
       <div style="display:flex;gap:12px">
-        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;text-transform:none;letter-spacing:0;cursor:pointer">
-          <input type="radio" name="tenant-policy" value="selfserve" ${STATE.tenantPolicy === 'selfserve' ? 'checked' : ''} onchange="STATE.tenantPolicy='selfserve';updateAllUI()"> Self-serve with approval
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;text-transform:none;letter-spacing:0;cursor:pointer">
-          <input type="radio" name="tenant-policy" value="manageronly" ${STATE.tenantPolicy === 'manageronly' ? 'checked' : ''} onchange="STATE.tenantPolicy='manageronly';updateAllUI()"> Manager-only creation
-        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;text-transform:none;letter-spacing:0;cursor:pointer"><input type="radio" name="tenant-policy" value="selfserve" ${STATE.tenantPolicy === 'selfserve' ? 'checked' : ''} onchange="STATE.tenantPolicy='selfserve';updateAllUI()"> Self-serve with approval</label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;text-transform:none;letter-spacing:0;cursor:pointer"><input type="radio" name="tenant-policy" value="manageronly" ${STATE.tenantPolicy === 'manageronly' ? 'checked' : ''} onchange="STATE.tenantPolicy='manageronly';updateAllUI()"> Manager-only creation</label>
       </div>
     </div>`;
   showInlineModal('Admin Settings', html);
@@ -451,7 +463,7 @@ function updateBanners() {
   if (STATE.workspace === 'private') {
     html += `<div class="banner banner-info"><i class="fas fa-info-circle"></i><span>Use free assets in My Private (limits apply). Create a Team Workspace for paid assets.</span>${isAdmin() ? '<button class="btn btn-sm btn-secondary" onclick="openWorkspaceModal()">Create Team Workspace</button>' : ''}</div>`;
   } else if (STATE.workspace === 'pending') {
-    html += `<div class="banner banner-warning"><i class="fas fa-clock"></i><span>Awaiting manager approval &mdash; free assets available. <a href="#" onclick="event.preventDefault();alert('Reminder sent!')">Nudge approver</a></span></div>`;
+    html += `<div class="banner banner-warning"><i class="fas fa-clock"></i><span>Awaiting manager approval &mdash; free assets available. <a href="#" onclick="event.preventDefault();alert(\'Reminder sent!\')">Nudge approver</a></span></div>`;
   }
   area.innerHTML = html;
 }
@@ -461,35 +473,32 @@ function updateStateSwitcher() {
   const body = $('.state-switcher-body');
   if (!body) return;
   body.innerHTML = `
+    <label>Version <select onchange="STATE.version=this.value;updateAllUI()">
+      <option value="v1" ${STATE.version==='v1'?'selected':''}>V1 — Baseline</option>
+      <option value="v2" ${STATE.version==='v2'?'selected':''}>V2 — Role-based Home</option>
+      <option value="v3" ${STATE.version==='v3'?'selected':''}>V3 — Prompt Builder</option>
+    </select></label>
     <label>Role <select onchange="STATE.role=this.value;updateAllUI()">
-      <option value="admin" ${STATE.role === 'admin' ? 'selected' : ''}>Admin</option>
-      <option value="contributor" ${STATE.role === 'contributor' ? 'selected' : ''}>Contributor</option>
+      <option value="admin" ${STATE.role==='admin'?'selected':''}>Admin</option>
+      <option value="contributor" ${STATE.role==='contributor'?'selected':''}>Contributor</option>
     </select></label>
     <label>Workspace <select onchange="STATE.workspace=this.value;updateAllUI()">
-      <option value="private" ${STATE.workspace === 'private' ? 'selected' : ''}>No Team WS</option>
-      <option value="approved" ${STATE.workspace === 'approved' ? 'selected' : ''}>Approved (ACME)</option>
-      <option value="pending" ${STATE.workspace === 'pending' ? 'selected' : ''}>Pending (Retail)</option>
+      <option value="private" ${STATE.workspace==='private'?'selected':''}>No Team WS</option>
+      <option value="approved" ${STATE.workspace==='approved'?'selected':''}>Approved (ACME)</option>
+      <option value="pending" ${STATE.workspace==='pending'?'selected':''}>Pending (Retail)</option>
     </select></label>
     <label>Policy <select onchange="STATE.tenantPolicy=this.value;updateAllUI()">
-      <option value="selfserve" ${STATE.tenantPolicy === 'selfserve' ? 'selected' : ''}>Self-serve + Approval</option>
-      <option value="manageronly" ${STATE.tenantPolicy === 'manageronly' ? 'selected' : ''}>Manager-only</option>
-    </select></label>
-    <label>Dataset <select onchange="STATE.datasetApproved=this.value==='true';updateAllUI()">
-      <option value="true" ${STATE.datasetApproved ? 'selected' : ''}>Approved</option>
-      <option value="false" ${!STATE.datasetApproved ? 'selected' : ''}>Not Approved</option>
+      <option value="selfserve" ${STATE.tenantPolicy==='selfserve'?'selected':''}>Self-serve + Approval</option>
+      <option value="manageronly" ${STATE.tenantPolicy==='manageronly'?'selected':''}>Manager-only</option>
     </select></label>
     <label>Budget <select onchange="STATE.budgetState=this.value;updateAllUI()">
-      <option value="within" ${STATE.budgetState === 'within' ? 'selected' : ''}>Within budget</option>
-      <option value="softcap" ${STATE.budgetState === 'softcap' ? 'selected' : ''}>Soft cap alert</option>
-      <option value="hardcap" ${STATE.budgetState === 'hardcap' ? 'selected' : ''}>Hard cap block</option>
-    </select></label>
-    <label>Export <select onchange="STATE.exportAllowed=this.value==='true';updateAllUI()">
-      <option value="false" ${!STATE.exportAllowed ? 'selected' : ''}>Blocked</option>
-      <option value="true" ${STATE.exportAllowed ? 'selected' : ''}>Allowed</option>
+      <option value="within" ${STATE.budgetState==='within'?'selected':''}>Within budget</option>
+      <option value="softcap" ${STATE.budgetState==='softcap'?'selected':''}>Soft cap alert</option>
+      <option value="hardcap" ${STATE.budgetState==='hardcap'?'selected':''}>Hard cap block</option>
     </select></label>
     <label>Nav <select onchange="STATE.navCollapsed=this.value==='true';document.querySelector('.left-nav')?.classList.toggle('collapsed',STATE.navCollapsed);document.body.classList.toggle('nav-collapsed',STATE.navCollapsed);renderLeftNav()">
-      <option value="false" ${!STATE.navCollapsed ? 'selected' : ''}>Expanded</option>
-      <option value="true" ${STATE.navCollapsed ? 'selected' : ''}>Collapsed</option>
+      <option value="false" ${!STATE.navCollapsed?'selected':''}>Expanded</option>
+      <option value="true" ${STATE.navCollapsed?'selected':''}>Collapsed</option>
     </select></label>`;
 }
 function toggleStateSwitcher() { toggle($('.state-switcher-body')); }
@@ -514,25 +523,25 @@ function renderWSCreateStep() {
   const body = $('#ws-create-body');
   const footer = $('#ws-create-footer');
   if (!body) return;
-  $$('.stepper .step').forEach((s, i) => {
+  $$('#ws-create-modal .stepper .step').forEach((s, i) => {
     s.classList.remove('active', 'completed');
     if (i + 1 < wsCreateStep) s.classList.add('completed');
     if (i + 1 === wsCreateStep) s.classList.add('active');
   });
   if (wsCreateStep === 1) {
-    body.innerHTML = `<div class="form-group"><label>Workspace Name</label><input class="form-input" id="ws-name" placeholder="e.g., ACME Retail RFP Team" value="${wsCreateData.name || ''}"></div>
-      <div class="form-row"><div class="form-group"><label>Service Line</label><select class="form-select" id="ws-sl"><option value="">Select...</option>${SERVICE_LINES.map(s => `<option ${wsCreateData.serviceLine === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+    body.innerHTML = `<div class="form-group"><label>Workspace Name</label><input class="form-input" id="ws-name" placeholder="e.g., ACME Retail RFP Team" value="${wsCreateData.name||''}"></div>
+      <div class="form-row"><div class="form-group"><label>Service Line</label><select class="form-select" id="ws-sl"><option value="">Select...</option>${SERVICE_LINES.map(s=>`<option ${wsCreateData.serviceLine===s?'selected':''}>${s}</option>`).join('')}</select></div>
       <div class="form-group"><label>Industry</label><select class="form-select"><option value="">Select...</option><option>Retail &amp; Consumer</option><option>Financial Services</option><option>Technology</option><option>Health &amp; Life Sciences</option><option>Government</option></select></div></div>
       <div class="form-row"><div class="form-group"><label>Region / Residency</label><select class="form-select"><option value="">Select...</option><option>US</option><option>EU</option><option>APAC</option><option>UK</option></select></div>
       <div class="form-group"><label>Template</label><select class="form-select"><option value="">None</option><option>RFP delivery</option><option>Controls walkthrough</option><option>Audit engagement</option></select></div></div>`;
     footer.innerHTML = `<div></div><button class="btn btn-primary" onclick="wsCreateNext()">Next: Engagement Code <i class="fas fa-arrow-right"></i></button>`;
   } else if (wsCreateStep === 2) {
-    body.innerHTML = `<div class="form-group"><label>Engagement Code</label><div style="display:flex;gap:8px"><input class="form-input" id="ws-engcode" placeholder="e.g., ENG-ACME-2026-001" value="${wsCreateData.engCode || ''}"><button class="btn btn-secondary" onclick="validateEngCode()"><i class="fas fa-check-circle"></i> Validate</button></div><div class="form-help">Enter the engagement code to link budget and governance.</div></div><div id="code-validation-result"></div>`;
+    body.innerHTML = `<div class="form-group"><label>Engagement Code</label><div style="display:flex;gap:8px"><input class="form-input" id="ws-engcode" placeholder="e.g., ENG-ACME-2026-001" value="${wsCreateData.engCode||''}"><button class="btn btn-secondary" onclick="validateEngCode()"><i class="fas fa-check-circle"></i> Validate</button></div><div class="form-help">Enter the engagement code to link budget and governance.</div></div><div id="code-validation-result"></div>`;
     footer.innerHTML = `<button class="btn btn-secondary" onclick="wsCreateStep=1;renderWSCreateStep()"><i class="fas fa-arrow-left"></i> Back</button><button class="btn btn-primary" id="ws-step2-next" disabled onclick="wsCreateNext()">Next <i class="fas fa-arrow-right"></i></button>`;
   } else if (wsCreateStep === 3) {
     body.innerHTML = `<div class="form-group"><label>Add Members</label><input class="form-input" placeholder="Search by name or SSO group...">
       <div class="member-list" style="margin-top:12px"><div class="member-item"><div class="avatar">AM</div><span>Alex Morgan (you)</span><span class="chip chip-blue">Owner</span></div><div class="member-item"><div class="avatar">JP</div><span>Jane Patel</span><span class="chip chip-default">Member</span></div></div></div>
-      <div class="form-group"><label>Initial Assets</label><div style="display:flex;flex-wrap:wrap;gap:6px">${getAllAssets().slice(0, 5).map(a => `<span class="chip chip-clickable chip-outline" onclick="this.classList.toggle('active')">${a.name}</span>`).join('')}</div></div>`;
+      <div class="form-group"><label>Initial Assets</label><div style="display:flex;flex-wrap:wrap;gap:6px">${getAllAssets().slice(0,5).map(a=>`<span class="chip chip-clickable chip-outline" onclick="this.classList.toggle('active')">${a.name}</span>`).join('')}</div></div>`;
     footer.innerHTML = `<button class="btn btn-secondary" onclick="wsCreateStep=2;renderWSCreateStep()"><i class="fas fa-arrow-left"></i> Back</button><button class="btn btn-primary" onclick="wsCreateNext()">Next <i class="fas fa-arrow-right"></i></button>`;
   } else if (wsCreateStep === 4) {
     body.innerHTML = `<div class="form-group"><label>Monthly Budget</label><div style="display:flex;align-items:center;gap:8px"><span style="font-weight:600">$</span><input class="form-input" type="number" value="1500" style="max-width:180px"><span class="text-sm text-muted">/month</span></div></div>
@@ -571,7 +580,7 @@ function validateEngCode() {
   if (onTeam) {
     result.innerHTML = `<div class="code-validation success"><i class="fas fa-check-circle" style="color:var(--ey-green)"></i><div class="code-validation-info"><strong>Verified &mdash; Auto-approved</strong><p>Owner: ${eng.owner} &bull; Budget: $${eng.budget.toLocaleString()} &bull; Region: ${eng.region}</p><p style="color:var(--ey-green);font-size:0.786rem;margin-top:4px">You are on the engagement team.</p></div></div>`;
   } else {
-    result.innerHTML = `<div class="code-validation pending"><i class="fas fa-clock" style="color:var(--ey-orange)"></i><div class="code-validation-info"><strong>Verified &mdash; Approval required</strong><p>Owner: ${eng.owner} &bull; Budget: $${eng.budget.toLocaleString()} &bull; Region: ${eng.region}</p><p style="color:var(--ey-orange);font-size:0.786rem;margin-top:4px">Not on engagement team. ${eng.owner} will be notified. Free assets available while pending.</p></div></div>`;
+    result.innerHTML = `<div class="code-validation pending"><i class="fas fa-clock" style="color:var(--ey-orange)"></i><div class="code-validation-info"><strong>Verified &mdash; Approval required</strong><p>Owner: ${eng.owner} &bull; Budget: $${eng.budget.toLocaleString()} &bull; Region: ${eng.region}</p><p style="color:var(--ey-orange);font-size:0.786rem;margin-top:4px">Not on engagement team. ${eng.owner} will be notified.</p></div></div>`;
   }
   if (nextBtn) nextBtn.disabled = false;
 }
@@ -582,7 +591,7 @@ function wsCreateComplete() {
   const eng = ENGAGEMENT_CODES[wsCreateData.engCode];
   const onTeam = eng && eng.team.includes(STATE.currentUser.email);
   if (onTeam) {
-    body.innerHTML = `<div class="completion-state"><div class="completion-icon approved"><i class="fas fa-check"></i></div><h2>Workspace Created &mdash; Ready to Use</h2><p style="margin-top:8px">"<strong>${wsCreateData.name || 'New Workspace'}</strong>" linked to <strong>${wsCreateData.engCode}</strong>.</p><p style="margin-top:4px;color:var(--ey-green)">You can now run paid assets.</p><div style="margin-top:20px;display:flex;gap:8px;justify-content:center"><a href="workspace-home.html?ws=acme" class="btn btn-primary">Go to Workspace</a><button class="btn btn-secondary" onclick="closeModal('ws-create-modal')">Close</button></div></div>`;
+    body.innerHTML = `<div class="completion-state"><div class="completion-icon approved"><i class="fas fa-check"></i></div><h2>Workspace Created &mdash; Ready to Use</h2><p style="margin-top:8px">"<strong>${wsCreateData.name||'New Workspace'}</strong>" linked to <strong>${wsCreateData.engCode}</strong>.</p><p style="margin-top:4px;color:var(--ey-green)">You can now run paid assets.</p><div style="margin-top:20px;display:flex;gap:8px;justify-content:center"><a href="workspace-home.html?ws=acme" class="btn btn-primary">Go to Workspace</a><button class="btn btn-secondary" onclick="closeModal('ws-create-modal')">Close</button></div></div>`;
   } else {
     body.innerHTML = `<div class="completion-state"><div class="completion-icon pending"><i class="fas fa-clock"></i></div><h2>Workspace Created &mdash; Pending Approval</h2><p style="margin-top:8px">Awaiting approval from <strong>${eng?.owner}</strong>.</p><p style="margin-top:4px;color:var(--ey-orange)">Free assets available while pending.</p><div style="margin-top:20px;display:flex;gap:8px;justify-content:center"><a href="workspace-home.html?ws=retail" class="btn btn-primary">Use Free Assets</a><button class="btn btn-secondary" onclick="alert('Reminder sent!')">Nudge Approver</button></div></div>`;
   }
@@ -622,6 +631,7 @@ function initTheme() {
 function updateAllUI() {
   updateBanners();
   updateStateSwitcher();
+  updateVersionSwitcher();
   renderLeftNav();
   updateRoleIndicator();
   if (typeof updatePageUI === 'function') updatePageUI();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EYQ — Finder Wizard</title>
+  <title>EYQ — Finder</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -18,22 +18,21 @@
     <div class="avatar">AM</div>
   </div>
 </header>
+
+<!-- Version Switcher Bar -->
+<div class="version-bar">
+  <div class="version-switcher-wrap" id="version-switcher"></div>
+  <span class="version-desc"><i class="fas fa-info-circle"></i> <span id="version-desc-text"></span></span>
+</div>
+
 <nav class="left-nav" role="navigation"></nav>
 
 <main class="app-content">
   <div id="banner-area"></div>
 
-  <!-- Wizard Stepper Header -->
-  <div class="wizard-fullscreen-stepper" id="wizard-stepper">
-    <div class="step active"><span class="step-num">1</span> Choose your role</div>
-    <div class="step-connector"></div>
-    <div class="step"><span class="step-num">2</span> Service line</div>
-    <div class="step-connector"></div>
-    <div class="step"><span class="step-num">3</span> Pick your tasks</div>
-    <div class="step-connector"></div>
-    <div class="step"><span class="step-num">4</span> Add context</div>
-    <div class="step-connector"></div>
-    <div class="step"><span class="step-num">5</span> Review & results</div>
+  <!-- Wizard Stepper Header (V1/V2) -->
+  <div id="wizard-stepper-wrap">
+    <div class="wizard-fullscreen-stepper" id="wizard-stepper"></div>
   </div>
 
   <!-- Wizard Body -->
@@ -42,14 +41,14 @@
   <!-- Wizard Footer -->
   <div style="position:fixed;bottom:0;left:var(--nav-width);right:0;padding:16px 32px;background:var(--card-bg);border-top:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center;z-index:50" id="wizard-footer"></div>
 
-  <!-- Results Gallery (shown on step 5) -->
+  <!-- Results Gallery (shown on final step) -->
   <div class="hidden" id="results-section" style="padding:0 24px 80px">
     <div style="max-width:1400px;margin:0 auto">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div><h2>Results Gallery</h2><p class="text-sm text-muted" id="results-count"></p></div>
         <div style="display:flex;gap:6px">
           <button class="btn btn-secondary btn-sm" onclick="alert('Preset saved!')"><i class="fas fa-bookmark"></i> Save preset</button>
-          <button class="btn btn-secondary btn-sm" onclick="wizardStep=4;renderWizard()"><i class="fas fa-arrow-left"></i> Refine</button>
+          <button class="btn btn-secondary btn-sm" id="refine-btn" onclick="goBackFromResults()"><i class="fas fa-arrow-left"></i> Refine</button>
         </div>
       </div>
       <div class="results-layout">
@@ -69,6 +68,18 @@
             <label class="filter-option"><input type="checkbox"> Free only</label>
             <label class="filter-option"><input type="checkbox"> New</label>
             <label class="filter-option"><input type="checkbox"> Favorites only</label>
+          </div>
+          <div id="filter-extra-v2v3" class="hidden">
+            <div class="filter-group"><div class="filter-group-title">Role</div>
+              <label class="filter-option"><input type="checkbox" checked> Consultant</label>
+              <label class="filter-option"><input type="checkbox"> Manager</label>
+              <label class="filter-option"><input type="checkbox"> Accountant</label>
+            </div>
+            <div class="filter-group"><div class="filter-group-title">Data Residency</div>
+              <label class="filter-option"><input type="checkbox" checked> US</label>
+              <label class="filter-option"><input type="checkbox" checked> EU</label>
+              <label class="filter-option"><input type="checkbox"> APAC</label>
+            </div>
           </div>
           <div style="margin-top:16px"><div class="filter-group-title">Your Presets</div><div style="padding:8px;background:var(--chip-bg);border-radius:var(--radius-md);font-size:var(--font-size-10);color:var(--ey-gray-500)">No saved presets yet.</div></div>
         </div>
@@ -119,22 +130,70 @@ const WIZARD_TASKS = {
 const SL_OPTIONS = ['Fabric', 'Assurance', 'Tax', 'Consulting', 'Strategy and Transactions', 'Internal Functions'];
 
 let wizardStep = 1;
-let wizardData = { roles: [], serviceLine: '', tasks: [], industry: '', region: '', excludeRestricted: false };
+let wizardData = { roles: [], serviceLine: '', tasks: [], industry: '', region: '', excludeRestricted: false, prompt: '', promptImproved: false };
+
+/* V1/V2 steps: 1-Role, 2-SL, 3-Tasks, 4-Context, 5-Results */
+/* V3 steps: 1-Role, 2-Tasks+SL+Industry, 3-Prompt compose, 4-Results */
+
+function getStepCount() { return isV3() ? 4 : 5; }
+
+function getStepLabels() {
+  if (isV3()) return ['Choose your role', 'Tasks + Service line', 'Compose your prompt', 'Find assets'];
+  return ['Choose your role', 'Service line', 'Pick your tasks', 'Add context', 'Review & results'];
+}
+
+function renderStepper() {
+  const stepper = $('#wizard-stepper');
+  if (!stepper) return;
+  const labels = getStepLabels();
+  const total = getStepCount();
+  stepper.innerHTML = labels.map((label, i) => {
+    const stepNum = i + 1;
+    let cls = '';
+    if (stepNum < wizardStep) cls = 'completed';
+    else if (stepNum === wizardStep) cls = 'active';
+    const conn = i < labels.length - 1 ? '<div class="step-connector"></div>' : '';
+    return `<div class="step ${cls}"><span class="step-num">${stepNum}</span> ${label}</div>${conn}`;
+  }).join('');
+}
 
 function renderWizard() {
   const body = $('#wizard-body');
   const footer = $('#wizard-footer');
   const resultsSection = $('#results-section');
+  const stepperWrap = $('#wizard-stepper-wrap');
+  const extraFilters = $('#filter-extra-v2v3');
+
   hide(resultsSection);
   show(body);
+  if (stepperWrap) show(stepperWrap);
+  renderStepper();
 
-  // Update stepper
-  $$('#wizard-stepper .step').forEach((s, i) => {
-    s.classList.remove('active', 'completed');
-    if (i + 1 < wizardStep) s.classList.add('completed');
-    if (i + 1 === wizardStep) s.classList.add('active');
-  });
+  if (extraFilters) {
+    if (isV1()) hide(extraFilters); else show(extraFilters);
+  }
 
+  const total = getStepCount();
+  const isResultsStep = wizardStep === total;
+
+  if (isResultsStep) {
+    hide(body);
+    if (stepperWrap) hide(stepperWrap);
+    show(resultsSection);
+    renderResults();
+    const roleNames = wizardData.roles.map(id => WIZARD_ROLES.find(r=>r.id===id)?.name).filter(Boolean).join(', ');
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=${total-1};renderWizard()"><i class="fas fa-arrow-left"></i> Refine</button>
+      <div class="text-sm text-muted">Showing results for: <strong>${roleNames || 'All'}</strong> &bull; ${wizardData.serviceLine || 'All lines'} &bull; ${wizardData.tasks.length} task(s)</div>
+      <button class="btn btn-secondary btn-sm" onclick="alert('Preset saved!')"><i class="fas fa-bookmark"></i> Save preset</button>`;
+    return;
+  }
+
+  if (isV3()) renderV3Step(body, footer);
+  else renderV1V2Step(body, footer);
+}
+
+/* V1/V2 Wizard Steps */
+function renderV1V2Step(body, footer) {
   if (wizardStep === 1) {
     body.innerHTML = `<h2 style="margin-bottom:6px">Choose your role</h2><p class="text-muted" style="margin-bottom:20px">Select the role(s) that best describe your work.</p>
       <div class="role-grid">${WIZARD_ROLES.map(r => `
@@ -150,7 +209,9 @@ function renderWizard() {
   } else if (wizardStep === 3) {
     const allTasks = new Set();
     wizardData.roles.forEach(r => (WIZARD_TASKS[r]||[]).forEach(t => allTasks.add(t)));
+    const noTasks = allTasks.size === 0;
     body.innerHTML = `<h2 style="margin-bottom:6px">Pick your tasks</h2><p class="text-muted" style="margin-bottom:20px">Select the tasks you want AI tools for.</p>
+      ${noTasks ? '<div style="padding:16px;background:var(--badge-info-bg);border-radius:var(--radius-md);margin-bottom:16px;font-size:0.857rem;color:var(--ey-blue);display:flex;align-items:center;gap:8px"><i class="fas fa-info-circle"></i> No pre-mapped tasks for this role. Describe your task below.</div><div class="form-group"><label>Describe your task</label><input class="form-input" placeholder="e.g., Draft a client proposal..." oninput="wizardData.tasks=[this.value]"></div>' : ''}
       <div class="task-chips">${[...allTasks].map(t => `<div class="task-chip ${wizardData.tasks.includes(t)?'selected':''}" onclick="toggleWizTask('${t}')">${t}</div>`).join('')}</div>
       <div class="text-sm text-muted" style="margin-top:12px">${wizardData.tasks.length} task(s) selected</div>`;
     footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=2;renderWizard()"><i class="fas fa-arrow-left"></i> Back</button><button class="btn btn-primary" onclick="wizardStep=4;renderWizard()">Next: Context <i class="fas fa-arrow-right"></i></button>`;
@@ -164,15 +225,88 @@ function renderWizard() {
         <div class="wizard-toggle"><input type="checkbox" ${wizardData.excludeRestricted?'checked':''} onchange="wizardData.excludeRestricted=this.checked"> Exclude assets requiring Restricted datasets</div>
       </div>`;
     footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=3;renderWizard()"><i class="fas fa-arrow-left"></i> Back</button><button class="btn btn-primary btn-lg" onclick="wizardStep=5;renderWizard()"><i class="fas fa-search"></i> See results</button>`;
-  } else if (wizardStep === 5) {
-    hide(body);
-    show(resultsSection);
-    renderResults();
-    const roleNames = wizardData.roles.map(id => WIZARD_ROLES.find(r=>r.id===id)?.name).filter(Boolean).join(', ');
-    footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=4;renderWizard()"><i class="fas fa-arrow-left"></i> Refine</button>
-      <div class="text-sm text-muted">Showing results for: <strong>${roleNames || 'All'}</strong> &bull; ${wizardData.serviceLine || 'All lines'} &bull; ${wizardData.tasks.length} task(s)</div>
-      <button class="btn btn-secondary btn-sm" onclick="alert('Preset saved!')"><i class="fas fa-bookmark"></i> Save preset</button>`;
   }
+}
+
+/* V3 Prompt Builder Steps */
+function renderV3Step(body, footer) {
+  if (wizardStep === 1) {
+    body.innerHTML = `<h2 style="margin-bottom:6px">Choose your role</h2><p class="text-muted" style="margin-bottom:20px">Select the role(s) that best describe your work.</p>
+      <div class="role-grid">${WIZARD_ROLES.map(r => `
+        <div class="role-card ${wizardData.roles.includes(r.id)?'selected':''}" onclick="toggleWizRole('${r.id}')">
+          <div class="role-icon"><i class="fas ${r.icon}"></i></div>
+          <div class="role-name">${r.name}</div>
+        </div>`).join('')}</div>`;
+    footer.innerHTML = `<a href="index.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Home</a><button class="btn btn-primary" onclick="wizardStep=2;renderWizard()" ${wizardData.roles.length?'':'disabled'}>Next: Tasks & Service line <i class="fas fa-arrow-right"></i></button>`;
+  } else if (wizardStep === 2) {
+    const allTasks = new Set();
+    wizardData.roles.forEach(r => (WIZARD_TASKS[r]||[]).forEach(t => allTasks.add(t)));
+    body.innerHTML = `<h2 style="margin-bottom:6px">Choose tasks, service line & industry</h2><p class="text-muted" style="margin-bottom:20px">These selections will auto-compose your prompt.</p>
+      <div class="wizard-fields">
+        <div class="form-group"><label>Tasks</label>
+          <div class="task-chips">${[...allTasks].map(t => `<div class="task-chip ${wizardData.tasks.includes(t)?'selected':''}" onclick="toggleWizTask('${t}')">${t}</div>`).join('')}</div>
+          <div class="text-sm text-muted" style="margin-top:6px">${wizardData.tasks.length} task(s) selected</div>
+        </div>
+        <div class="wizard-row">
+          <div class="wizard-field"><label>Service Line</label>
+            <div class="service-line-chips" style="gap:6px">${SL_OPTIONS.map(sl => `<div class="sl-chip ${wizardData.serviceLine===sl?'selected':''}" style="padding:6px 14px;font-size:var(--font-size-12)" onclick="wizardData.serviceLine='${sl}';renderWizard()">${sl}</div>`).join('')}</div>
+          </div>
+          <div class="wizard-field"><label>Industry (optional)</label><select class="wizard-select" onchange="wizardData.industry=this.value"><option value="">Any</option><option>Retail & Consumer</option><option>Financial Services</option><option>Technology</option><option>Health & Life Sciences</option><option>Government</option></select></div>
+        </div>
+      </div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=1;renderWizard()"><i class="fas fa-arrow-left"></i> Back</button><button class="btn btn-primary" onclick="autoComposePrompt();wizardStep=3;renderWizard()">Next: Compose prompt <i class="fas fa-arrow-right"></i></button>`;
+  } else if (wizardStep === 3) {
+    body.innerHTML = `<h2 style="margin-bottom:6px">Compose your prompt</h2><p class="text-muted" style="margin-bottom:20px">Review and refine the auto-generated prompt, or use the AI Improver.</p>
+      <div class="prompt-builder">
+        <textarea class="prompt-field" id="v3-wiz-prompt" rows="5">${wizardData.prompt || ''}</textarea>
+        <div class="prompt-actions">
+          <button class="ai-improver-btn" id="wiz-improver-btn" onclick="improveWizPrompt()"><i class="fas fa-wand-magic-sparkles"></i> AI Prompt Improver</button>
+          <span class="text-xs text-muted" id="wiz-improver-status">${wizardData.promptImproved ? 'Prompt enhanced' : ''}</span>
+        </div>
+        ${wizardData.promptImproved ? `<div class="prompt-preview" style="margin-top:14px"><div class="preview-label">Enhanced prompt ready</div><div class="preview-text" style="color:var(--ey-green)"><i class="fas fa-check"></i> Governance context and task specificity added</div></div>` : ''}
+      </div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="wizardStep=2;renderWizard()"><i class="fas fa-arrow-left"></i> Back</button><button class="btn btn-primary btn-lg" onclick="wizardData.prompt=$('#v3-wiz-prompt')?.value||'';wizardStep=4;renderWizard()"><i class="fas fa-search"></i> Find assets</button>`;
+  }
+}
+
+function autoComposePrompt() {
+  const roleNames = wizardData.roles.map(id => WIZARD_ROLES.find(r=>r.id===id)?.name).filter(Boolean).join(', ');
+  const tasks = wizardData.tasks.length ? wizardData.tasks.join(', ') : 'general tasks';
+  const sl = wizardData.serviceLine || 'any service line';
+  const ind = wizardData.industry ? ` in the ${wizardData.industry} industry` : '';
+  wizardData.prompt = `As a ${roleNames || 'professional'} in ${sl}${ind}, I need AI tools to help me with: ${tasks}. Find the best matching agents, roleplays, datasets, and connectors for these tasks.`;
+  wizardData.promptImproved = false;
+}
+
+function improveWizPrompt() {
+  const field = $('#v3-wiz-prompt');
+  const btn = $('#wiz-improver-btn');
+  const status = $('#wiz-improver-status');
+  if (!field || !field.value.trim()) return;
+  btn.disabled = true;
+  if (status) status.textContent = 'Improving...';
+  setTimeout(() => {
+    const roleNames = wizardData.roles.map(id => WIZARD_ROLES.find(r=>r.id===id)?.name).filter(Boolean).join(', ');
+    const tasks = wizardData.tasks.length ? wizardData.tasks.join(', ') : 'general tasks';
+    const sl = wizardData.serviceLine || 'Consulting';
+    field.value = `I am a ${roleNames || 'professional'} working in ${sl} at EY. My priority tasks are: ${tasks}. I need AI-powered tools that can accelerate these workflows while meeting EY governance requirements. Prioritize tools that integrate with existing EY methodologies, support my data residency needs, and fit within workspace budget constraints. Show me agents for task automation, roleplays for practice, datasets for grounding, and MCP connectors for integration.`;
+    wizardData.prompt = field.value;
+    wizardData.promptImproved = true;
+    btn.classList.add('improved');
+    btn.innerHTML = '<i class="fas fa-check"></i> Prompt improved';
+    if (status) status.textContent = 'Prompt enhanced with governance context';
+    btn.disabled = false;
+    setTimeout(() => {
+      btn.classList.remove('improved');
+      btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> AI Prompt Improver';
+    }, 4000);
+  }, 1200);
+}
+
+function goBackFromResults() {
+  const total = getStepCount();
+  wizardStep = total - 1;
+  renderWizard();
 }
 
 function toggleWizRole(id) {
@@ -193,13 +327,16 @@ function renderResults() {
   const grid = $('#results-grid');
   const count = $('#results-count');
   if (!grid) return;
+  const matchCtx = { roles: wizardData.roles, tasks: wizardData.tasks, serviceLine: wizardData.serviceLine };
   const results = getAllAssets();
-  grid.innerHTML = results.map(a => renderAssetCard(a, true)).join('');
+  grid.innerHTML = results.map(a => renderAssetCard(a, true, matchCtx)).join('');
   if (count) count.textContent = `${results.length} assets found`;
 }
 
 function updatePageUI() {
   renderWizard();
+  const desc = $('#version-desc-text');
+  if (desc) desc.textContent = VERSION_TOOLTIPS[STATE.version] || '';
 }
 
 document.addEventListener('DOMContentLoaded', () => renderWizard());
