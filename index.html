@@ -39,31 +39,31 @@
   <!-- Shared: Title + Quick Actions (top) -->
   <section style="padding:20px 24px 0;background:var(--card-bg);border-bottom:1px solid var(--card-border)">
     <div style="max-width:1400px;margin:0 auto">
-      <div style="display:flex;align-items:start;justify-content:space-between;gap:24px;flex-wrap:wrap">
-        <div style="flex:1;min-width:300px">
-          <h1 style="margin-bottom:4px">Find AI tools for your team's work.</h1>
-          <p style="color:var(--ey-gray-600);max-width:560px">Discover agents, datasets, and roleplays tailored to EY methods&mdash;use them in a governed workspace tied to your engagement.</p>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="quick-actions"></div>
+      <div>
+        <h1 style="margin-bottom:4px">Find AI tools for your team's work.</h1>
+        <p style="color:var(--ey-gray-600);max-width:560px">Discover agents, datasets, and roleplays tailored to EY methods&mdash;use them in a governed workspace tied to your engagement.</p>
       </div>
 
-      <!-- AI Finder Inline (all versions show it here; V1 links to Wizard page, V2/V3 inline) -->
-      <div style="margin-top:20px;padding-bottom:24px;max-width:100%">
-        <div class="search-input-wrap" id="finder-input-wrap" style="max-width:780px">
-          <i class="fas fa-search" style="color:var(--ey-gray-500)"></i>
-          <input class="search-input" id="finder-input" placeholder="Describe your task (e.g., 'Draft a proposal for a retail client')." maxlength="512" oninput="updateFinderCharCount()">
-          <button class="search-submit" onclick="submitFinderSearch()">Search</button>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;max-width:780px">
-          <div class="char-counter"><span id="finder-char-count">0</span>/512</div>
-          <div style="position:relative">
-            <span class="search-helper" onclick="document.getElementById('rec-popover').classList.toggle('hidden')"><i class="fas fa-question-circle"></i> How recommendations work</span>
-            <div id="rec-popover" class="hidden" style="position:absolute;bottom:calc(100% + 8px);right:0;background:var(--modal-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:16px;width:320px;box-shadow:var(--shadow-xl);z-index:50">
-              <ul style="list-style:none;padding:0">
-                <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-database" style="color:var(--ey-blue);margin-top:2px"></i> Searches across agents, roleplays, datasets, and MCP connectors.</li>
-                <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-sort-amount-down" style="color:var(--ey-blue);margin-top:2px"></i> Ranks by role, service line, tasks, and governance fit.</li>
-                <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-robot" style="color:var(--ey-blue);margin-top:2px"></i> For general questions, suggests M365 Copilot.</li>
-              </ul>
+      <!-- AI Finder Inline -->
+      <div style="margin-top:20px;max-width:100%">
+        <!-- Search bar (V1/V2 only — hidden in V3) -->
+        <div id="finder-search-bar-wrap">
+          <div class="search-input-wrap" id="finder-input-wrap" style="max-width:780px">
+            <i class="fas fa-search" style="color:var(--ey-gray-500)"></i>
+            <input class="search-input" id="finder-input" placeholder="Describe your task (e.g., 'Draft a proposal for a retail client')." maxlength="512" oninput="updateFinderCharCount()">
+            <button class="search-submit" onclick="submitFinderSearch()">Search</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;max-width:780px">
+            <div class="char-counter"><span id="finder-char-count">0</span>/512</div>
+            <div style="position:relative">
+              <span class="search-helper" onclick="document.getElementById('rec-popover').classList.toggle('hidden')"><i class="fas fa-question-circle"></i> How recommendations work</span>
+              <div id="rec-popover" class="hidden" style="position:absolute;bottom:calc(100% + 8px);right:0;background:var(--modal-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:16px;width:320px;box-shadow:var(--shadow-xl);z-index:50">
+                <ul style="list-style:none;padding:0">
+                  <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-database" style="color:var(--ey-blue);margin-top:2px"></i> Searches across agents, roleplays, datasets, and MCP connectors.</li>
+                  <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-sort-amount-down" style="color:var(--ey-blue);margin-top:2px"></i> Ranks by role, service line, tasks, and governance fit.</li>
+                  <li style="padding:6px 0;font-size:var(--font-size-12);color:var(--ey-gray-700);display:flex;gap:8px"><i class="fas fa-robot" style="color:var(--ey-blue);margin-top:2px"></i> For general questions, suggests M365 Copilot.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -85,17 +85,32 @@
               <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px" onclick="clearFinderRole()"><i class="fas fa-times"></i> Clear role</button>
             </div>
             <div class="task-chips" id="finder-task-chips"></div>
-            <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+            <div id="v2-see-results" style="margin-top:10px;display:flex;align-items:center;gap:8px">
               <button class="btn btn-primary btn-sm" onclick="submitFinderSearch()"><i class="fas fa-search"></i> See results</button>
               <span class="text-xs text-muted" id="finder-task-count">Select tasks to refine results</span>
             </div>
           </div>
 
-          <!-- V3 Only: Prompt Builder area -->
+          <!-- V3 Only: Prompt Builder area (replaces search bar) -->
           <div id="v3-prompt-area" class="hidden" style="margin-top:16px">
             <div class="prompt-builder">
               <div style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px">Compose your prompt</div>
               <textarea class="prompt-field" id="v3-prompt-field" rows="4" placeholder="Your prompt will auto-populate based on role and task selections above..."></textarea>
+              <!-- V3 Filters: Service Line + Asset Type -->
+              <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+                <div style="flex:1;min-width:160px">
+                  <label style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:4px">Service Line</label>
+                  <select class="form-select" id="v3-sl-filter" style="font-size:var(--font-size-12);padding:6px 10px">
+                    <option value="">All</option><option value="Consulting" selected>Consulting</option><option value="Assurance">Assurance</option><option value="Tax">Tax</option><option value="Fabric">Fabric</option><option value="Strategy and Transactions">Strategy & Transactions</option>
+                  </select>
+                </div>
+                <div style="flex:1;min-width:160px">
+                  <label style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:4px">Asset Type</label>
+                  <select class="form-select" id="v3-type-filter" style="font-size:var(--font-size-12);padding:6px 10px">
+                    <option value="">All types</option><option value="Agent">Agents</option><option value="Roleplay">Roleplays</option><option value="Dataset">Datasets</option><option value="MCP">MCP / Connectors</option>
+                  </select>
+                </div>
+              </div>
               <div class="prompt-actions">
                 <button class="ai-improver-btn" id="ai-improver-btn" onclick="improvePrompt()"><i class="fas fa-wand-magic-sparkles"></i> AI Prompt Improver</button>
                 <button class="btn btn-primary" onclick="submitFinderSearch()"><i class="fas fa-search"></i> Find assets</button>
@@ -105,6 +120,9 @@
           </div>
         </div>
       </div>
+
+      <!-- Quick Actions (below the AI Finder) -->
+      <div style="margin-top:16px;padding-bottom:24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="quick-actions"></div>
     </div>
   </section>
 
@@ -379,17 +397,17 @@ function renderQuickActions() {
   let html = '';
   if (isAdmin()) {
     html += `<button class="btn btn-primary btn-sm" onclick="openWorkspaceModal()"><i class="fas fa-layer-group"></i> Create Workspace</button>`;
-    html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('finder.html')"><i class="fas fa-search"></i> Find AI Tools</button>`;
+    html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('agent-studio.html')"><i class="fas fa-robot"></i> Create Agent</button>`;
+    html += `<button class="btn btn-secondary btn-sm" onclick="alert('Roleplay creator...')"><i class="fas fa-comments"></i> Create Roleplay</button>`;
     if (isV2() || isV3()) {
       html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('approvals.html')"><i class="fas fa-check-circle"></i> Approvals</button>`;
       html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('budgets.html')"><i class="fas fa-chart-bar"></i> Set Budgets</button>`;
     }
   } else {
-    html += `<button class="btn btn-primary btn-sm" onclick="navigateTo('finder.html')"><i class="fas fa-search"></i> Find AI Tools</button>`;
     html += `<button class="btn btn-secondary btn-sm" onclick="alert('Join workspace flow...')"><i class="fas fa-sign-in-alt"></i> Join a Workspace</button>`;
-    html += `<button class="btn btn-secondary btn-sm" onclick="alert('Opening M365 Copilot...')"><i class="fab fa-microsoft"></i> M365 Copilot</button>`;
+    html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('agent-studio.html')"><i class="fas fa-robot"></i> Create Agent</button>`;
   }
-  html += `<button class="btn btn-secondary btn-sm" onclick="navigateTo('agent-studio.html')"><i class="fas fa-robot"></i> Create Agent</button>`;
+  html += `<button class="btn btn-secondary btn-sm" onclick="alert('Opening M365 Copilot...')"><i class="fab fa-microsoft"></i> M365 Copilot</button>`;
   container.innerHTML = html;
 }
 
@@ -398,10 +416,13 @@ function updateFinderVisibility() {
   const v1Link = $('#v1-finder-link');
   const v2v3Inline = $('#v2v3-finder-inline');
   const v3Prompt = $('#v3-prompt-area');
+  const searchBar = $('#finder-search-bar-wrap');
+  const v2Results = $('#v2-see-results');
 
   if (isV1()) {
     if (v1Link) show(v1Link);
     if (v2v3Inline) hide(v2v3Inline);
+    if (searchBar) show(searchBar);
   } else {
     if (v1Link) hide(v1Link);
     if (v2v3Inline) show(v2v3Inline);
@@ -409,8 +430,12 @@ function updateFinderVisibility() {
 
   if (isV3()) {
     if (v3Prompt) show(v3Prompt);
+    if (searchBar) hide(searchBar);
+    if (v2Results) hide(v2Results);
   } else {
     if (v3Prompt) hide(v3Prompt);
+    if (!isV1() && searchBar) show(searchBar);
+    if (v2Results) show(v2Results);
   }
 }
 
@@ -498,29 +523,6 @@ function renderV2AdminHome(container) {
   const matchCtx = { roles: ['consultant'], tasks: STATE.currentUser.tasks, serviceLine: STATE.currentUser.serviceLine };
 
   container.innerHTML = `
-    <!-- Manager Overview + ROI -->
-    <div class="home-module">
-      <div class="home-module-header"><h3><i class="fas fa-chart-pie" style="color:var(--ey-blue)"></i> Manager Overview + ROI</h3><a href="budgets.html" class="btn btn-ghost btn-sm">Full report</a></div>
-      <div class="home-module-body">
-        <div class="overview-grid">
-          <div class="overview-stat"><div class="stat-value" style="color:var(--ey-blue)">$37.3k</div><div class="stat-label">Total spend</div></div>
-          <div class="overview-stat"><div class="stat-value" style="color:var(--ey-green)">$65k</div><div class="stat-label">Total budget</div></div>
-          <div class="overview-stat"><div class="stat-value">$4.2k</div><div class="stat-label">7-day forecast</div></div>
-          <div class="overview-stat"><div class="stat-value" style="color:var(--ey-green)">142h</div><div class="stat-label">Time saved</div></div>
-          <div class="overview-stat"><div class="stat-value" style="color:var(--ey-orange)">5</div><div class="stat-label">Pending approvals</div></div>
-          <div class="overview-stat"><div class="stat-value" style="color:var(--ey-red)">1</div><div class="stat-label">Incidents</div></div>
-        </div>
-        <div style="margin-top:12px;padding:10px;background:var(--chip-bg);border-radius:var(--radius-md)">
-          <div style="font-size:var(--font-size-10);font-weight:600;color:var(--ey-gray-500);text-transform:uppercase;margin-bottom:6px">Top assets by usage</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <span class="chip chip-default">RFP Draft Agent — 89 runs</span>
-            <span class="chip chip-default">Policy Q&A — 156 runs</span>
-            <span class="chip chip-default">Client Pitch Roleplay — 67 runs</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Discover to Curate -->
     <div class="home-module">
       <div class="home-module-header"><h3><i class="fas fa-compass" style="color:var(--ey-green)"></i> Discover to Curate</h3><a href="finder.html" class="btn btn-ghost btn-sm">View all <i class="fas fa-arrow-right"></i></a></div>
