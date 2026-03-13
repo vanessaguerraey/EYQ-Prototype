@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EYQ — All Workspaces</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="motif-theme-dark">
+
+<header class="top-bar">
+  <div class="top-bar-left"><a href="index.html" class="logo"><span class="logo-mark">EY</span> EYQ</a></div>
+  <div class="top-bar-right">
+    <span id="role-indicator" class="role-chip-bar" style="cursor:default"><i class="fas fa-shield-alt"></i> Admin</span>
+    <button class="notif-btn" id="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-sun"></i></button>
+    <a href="approvals.html" class="notif-btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></a>
+    <div class="avatar">AM</div>
+  </div>
+</header>
+<div class="version-bar">
+  <div class="version-switcher-wrap" id="version-switcher"></div>
+  <span class="version-desc"><i class="fas fa-info-circle"></i> <span id="version-desc-text"></span></span>
+</div>
+
+<nav class="left-nav" role="navigation"></nav>
+
+<main class="app-content">
+  <div id="banner-area"></div>
+
+  <section style="padding:24px;background:var(--card-bg);border-bottom:1px solid var(--card-border)">
+    <div style="max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h1 style="margin-bottom:4px">Workspaces</h1>
+        <p style="color:var(--ey-gray-600)">Manage and access all your team workspaces in one place.</p>
+      </div>
+      <div id="ws-page-actions"></div>
+    </div>
+  </section>
+
+  <div class="page-container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="search-input-wrap" style="max-width:320px">
+          <i class="fas fa-search" style="color:var(--ey-gray-500)"></i>
+          <input class="search-input" id="ws-search" placeholder="Search workspaces..." oninput="filterWorkspaces()" style="padding:6px 0;font-size:var(--font-size-12)">
+        </div>
+        <select class="form-select" style="width:auto;padding:6px 10px;font-size:var(--font-size-12)" id="ws-filter-status" onchange="filterWorkspaces()">
+          <option value="">All statuses</option>
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+          <option value="active">Active</option>
+        </select>
+      </div>
+      <div class="text-sm text-muted" id="ws-total-count"></div>
+    </div>
+
+    <div class="ws-tiles" id="all-workspaces-grid"></div>
+  </div>
+</main>
+
+<!-- Workspace Creation Modal -->
+<div class="modal-overlay" id="ws-create-modal">
+  <div class="modal">
+    <div class="modal-header"><h2>Create Team Workspace</h2><button class="modal-close" onclick="closeModal('ws-create-modal')">&times;</button></div>
+    <div class="stepper"><div class="step active"><span class="step-num">1</span> Basics</div><div class="step-connector"></div><div class="step"><span class="step-num">2</span> Engagement Code</div><div class="step-connector"></div><div class="step"><span class="step-num">3</span> Members & Assets</div><div class="step-connector"></div><div class="step"><span class="step-num">4</span> Budgets & Policies</div></div>
+    <div class="modal-body" id="ws-create-body"></div>
+    <div class="modal-footer" id="ws-create-footer"></div>
+  </div>
+</div>
+
+<div class="state-switcher"><div class="state-switcher-header" onclick="toggleStateSwitcher()"><span><i class="fas fa-sliders-h"></i> Prototype States</span><i class="fas fa-chevron-up"></i></div><div class="state-switcher-body"></div></div>
+
+<script src="app.js"></script>
+<script>
+function renderWsPageActions() {
+  const container = $('#ws-page-actions');
+  if (!container) return;
+  if (isAdmin()) {
+    container.innerHTML = `<button class="btn btn-primary" onclick="openWorkspaceModal()"><i class="fas fa-plus"></i> Create Workspace</button>`;
+  }
+}
+
+function renderAllWorkspaces() {
+  const grid = $('#all-workspaces-grid');
+  const countEl = $('#ws-total-count');
+  if (!grid) return;
+
+  const searchVal = ($('#ws-search')?.value || '').toLowerCase();
+  const statusFilter = $('#ws-filter-status')?.value || '';
+
+  let wsList = Object.values(WORKSPACES);
+
+  if (searchVal) {
+    wsList = wsList.filter(ws => ws.name.toLowerCase().includes(searchVal) || (ws.engCode || '').toLowerCase().includes(searchVal));
+  }
+  if (statusFilter) {
+    wsList = wsList.filter(ws => ws.status === statusFilter || (statusFilter === 'active' && ws.type === 'private'));
+  }
+
+  if (countEl) countEl.textContent = `${wsList.length} workspace${wsList.length !== 1 ? 's' : ''}`;
+
+  grid.innerHTML = wsList.map(ws => {
+    const isPending = ws.status === 'pending';
+    const isPrivate = ws.type === 'private';
+    const statusColor = isPrivate ? 'var(--ey-gray-500)' : isPending ? 'var(--ey-orange)' : 'var(--ey-green)';
+    const avatars = (ws.participants || []).slice(0, 4).map(p => `<div class="avatar" style="width:24px;height:24px;font-size:9px;margin-left:-6px;border:2px solid var(--card-bg)" title="${p.n}">${p.i}</div>`).join('');
+    const budgetBar = ws.budget ? `<div class="ws-tile-budget"><div style="display:flex;justify-content:space-between;font-size:var(--font-size-10);margin-bottom:4px"><span>Budget</span><span>$${(ws.used || 0).toLocaleString()} / $${ws.budget.toLocaleString()}</span></div><div class="progress-bar" style="height:4px"><div class="progress-fill ${(ws.pct || 0) > 75 ? 'orange' : 'green'}" style="width:${ws.pct || 0}%"></div></div></div>` : '';
+    const agentChips = (ws.agents || []).slice(0, 2).map(a => `<span class="chip chip-default" style="font-size:8px;padding:1px 6px">${a}</span>`).join('');
+
+    return `<div class="ws-tile" onclick="navigateTo('workspace-home.html?ws=${ws.id}')">
+      <div class="ws-tile-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar" style="width:36px;height:36px;background:${statusColor};color:#1A1A24;font-size:14px;flex-shrink:0">${ws.icon}</div>
+          <div>
+            <div class="ws-tile-name">${ws.name}</div>
+            <div class="ws-tile-desc">${ws.desc || ''}</div>
+          </div>
+        </div>
+        ${ws.role ? `<span class="chip chip-${ws.role === 'Admin' ? 'blue' : ws.role === 'Editor' ? 'green' : 'default'}" style="font-size:9px">${ws.role}</span>` : ''}
+      </div>
+      <div class="ws-tile-meta">
+        ${ws.engCode ? `<span class="chip chip-${isPending ? 'orange' : 'green'}" style="font-size:9px">${ws.engCode}</span>` : '<span class="chip chip-default" style="font-size:9px">Free tier</span>'}
+        ${ws.region ? `<span class="chip chip-default" style="font-size:9px">${ws.region}</span>` : ''}
+        ${ws.riskTier ? `<span class="chip chip-${ws.riskTier === 'Low' ? 'green' : ws.riskTier === 'Medium' ? 'orange' : 'red'}" style="font-size:9px">${ws.riskTier} Risk</span>` : ''}
+        ${isPending ? '<span class="chip chip-orange" style="font-size:9px"><i class="fas fa-clock" style="font-size:7px"></i> Pending</span>' : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div class="ws-tile-avatars" style="display:flex;align-items:center">${avatars}</div>
+        <div class="ws-tile-agents" style="display:flex;gap:4px;flex-wrap:wrap">${agentChips}</div>
+      </div>
+      ${ws.lastActivity ? `<div class="text-xs text-muted" style="margin-bottom:6px"><i class="fas fa-clock"></i> Last activity: ${ws.lastActivity}</div>` : ''}
+      ${budgetBar}
+    </div>`;
+  }).join('');
+}
+
+function filterWorkspaces() {
+  renderAllWorkspaces();
+}
+
+function updatePageUI() {
+  renderWsPageActions();
+  renderAllWorkspaces();
+}
+</script>
+</body>
+</html>

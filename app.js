@@ -380,10 +380,11 @@ function renderLeftNav() {
       <div class="nav-item ${currentPage === 'finder.html' ? 'active' : ''}" data-tooltip="Finder">
         <a class="nav-item-content" href="finder.html"><span class="nav-icon"><i class="fas fa-search"></i></span><span class="nav-label">Finder</span></a>
       </div>
-      <div class="nav-item expanded" data-tooltip="Workspaces" onclick="this.classList.toggle('expanded')">
+      <div class="nav-item expanded ${currentPage === 'workspaces.html' ? 'active' : ''}" data-tooltip="Workspaces" onclick="this.classList.toggle('expanded')">
         <div class="nav-item-content"><span class="nav-icon"><i class="fas fa-folder"></i></span><span class="nav-label">Workspaces</span><span class="nav-expand-arrow"><i class="fas fa-chevron-down"></i></span></div>
       </div>
       <div class="nav-children">
+        <div class="nav-item" data-tooltip="All Workspaces"><a class="nav-item-content" href="workspaces.html"><span class="nav-label">All Workspaces</span></a></div>
         <div class="nav-item" data-tooltip="My Private"><a class="nav-item-content" href="workspace-home.html?ws=private"><span class="nav-label">My Private</span></a></div>
         <div class="nav-item" data-tooltip="ACME Retail"><a class="nav-item-content" href="workspace-home.html?ws=acme"><span class="nav-label">ACME Retail RFP Team</span><span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-ACME-2026-001</span></a></div>
         <div class="nav-item" data-tooltip="GloboCo Finance"><a class="nav-item-content" href="workspace-home.html?ws=globo"><span class="nav-label">GloboCo Finance Controls</span><span class="nav-sublabel" style="font-size:9px;color:var(--ey-gray-500)">ENG-GLOBO-2026-014</span></a></div>
